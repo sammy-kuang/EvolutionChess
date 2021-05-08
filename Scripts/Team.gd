@@ -1,2 +1,13 @@
+extends Node
 class_name Team
-enum Team {White,Black}
+
+var TEAM = {
+	0 : "white",
+	1 : "black"
+}
+
+var pieces = []
+var team_index = 0
+
+func _init(team_index:int = 0):
+	self.team_index = team_index

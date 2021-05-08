@@ -5,7 +5,7 @@ class_name Tile
 var tile_color : Color
 var tile_pos : Vector2
 var index : int = 0
-var main_ref
+var main_ref = null
 var is_highlighted = false
 
 # other tiles
@@ -24,24 +24,24 @@ func _ready():
 		get_label().add_color_override("font_color", Color.white)
 		
 func on_click():
-	var d = get_surrounding_tiles()
-	set_highlight(!is_highlighted)
-	for i in range(d.size()):
-		d[i].set_highlight(!d[i].is_highlighted, color_order[i])
+	if(main_ref.mouse_piece == null and piece != null):
+		main_ref.pickup(piece)
+	elif(main_ref.mouse_piece != null and piece == null):
+		main_ref.drop(self)
 		
 func get_diagonals_of_direction(direction : Vector2, magnitude : int = 7, invert : bool = false):
 	var ret_data = []
 	direction = direction.normalized().ceil()
-	print("Target: " + direction as String)
+	#print("Target: " + direction as String)
 	var diagonals = get_diagonals_magnitude(magnitude)
 	for i in range(diagonals.size()):
 		var t = diagonals[i]
 		var dir : Vector2 = (diagonals[i].tile_pos - tile_pos).normalized().ceil()
-		print(dir as String + ": " + diagonals[i].index as String)
+		#print(dir as String + ": " + diagonals[i].index as String)
 		
 		if dir == direction:
 			ret_data.append(t)
-			print("Added: " + diagonals[i].index as String)
+			#print("Added: " + diagonals[i].index as String)
 	
 	if invert:
 		ret_data.invert()
@@ -73,6 +73,26 @@ func get_up_left(magnitude : int = 7):
 
 func get_down_left(magnitude : int = 7):
 	return get_diagonals_of_direction(Vector2(-1,-1), magnitude, true)
+	
+func get_left(magnitude : int = 7):
+	var left = []
+	var horizontals = get_horizontals(magnitude)
+	
+	for i in range(horizontals.size()):
+		var t = horizontals[i]
+		if t.tile_pos.x < tile_pos.x:
+			left.push_front(t)
+	return left
+	
+func get_right(magnitude : int = 7):
+	var right = []
+	var horizontals = get_horizontals(magnitude)
+	
+	for i in range(horizontals.size()):
+		var t = horizontals[i]
+		if t.tile_pos.x > tile_pos.x:
+			right.append(t)
+	return right
 
 func get_downward(magnitude : int = 7):
 	var downward = []
@@ -153,16 +173,29 @@ func rank_file_diff():
 	
 func rank_file_sum():
 	return 7 + tile_pos.y + tile_pos.x
+	
+func set_piece(new_piece : Piece):
+	piece = new_piece
 
 func set_highlight(value : bool, color : Color = main_ref.highlight_color):
 	self_modulate = color if value else tile_color
 	is_highlighted = value
+	
+func has_piece():
+	return (piece != null)
+
+func has_enemy_piece(team : int):
+	if(has_piece()):
+		return piece.team != team
+	else:
+		return false
 
 func get_label():
 	return get_child(0).get_child(0)
 
 func set_label(text : String):
 	get_child(0).get_child(0).text = text
+	
 
 
 func _on_mouse_entered():

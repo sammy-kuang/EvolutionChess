@@ -4,3 +4,5 @@
 
 [node name="Main" type="Node2D"]
 script = ExtResource( 1 )
+white_color = Color( 0.937255, 0.843137, 0.709804, 1 )
+black_color = Color( 0.568627, 0.372549, 0.0901961, 1 )

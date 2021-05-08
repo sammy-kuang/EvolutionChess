@@ -12,19 +12,115 @@ var tile_prefab = preload("res://Instances/Tile.tscn")
 var tiles = []
 var mouse_tile : Tile = null
 
+# piece related
+var piece_prefab = preload("res://Instances/Piece.tscn")
+var mouse_piece : Piece = null
+var pieces = []
+
+# team related
+var teams = []
+
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	generate_board()
+	create_teams()
+	parse_fen_string("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
 	
-func _process(delta):
+	var p = pieces[1]
+	var up = p.search_for_path_block(p.tile.get_upward())
+	
+	#for i in range(up.size()):
+		#up[i].set_highlight(true, up[i].color_order[i])
+	
+func _process(_delta):
 	if get_viewport().get_mouse_position().x > 800+piece_offset:
 		mouse_tile = null
+		
+	if mouse_piece != null:
+		mouse_piece.position = get_viewport().get_mouse_position()
 		
 func _input(event):
 	if event.is_action_pressed("click"): # we got a click
 		if mouse_tile != null:
 			mouse_tile.on_click()
+			
+func pickup(piece : Piece):
+	# setting
+	mouse_piece = piece
+	mouse_piece.generate_possible_moves()
+	piece.cached_tile = piece.tile
+	piece.z_index = 1
+	# de-linking
+	piece.tile.piece = null
+	piece.tile = null
+	
+	# highlighting
+	for i in range(mouse_piece.possible_moves.size()):
+		mouse_piece.possible_moves[i].end_tile.set_highlight(true)
+	
+	
+func drop(tile : Tile):
+	# setting
+	tile.piece = mouse_piece
+	mouse_piece.position = tile.position
+	mouse_piece.tile = tile
+	mouse_piece.z_index = 0
+	
+	# highlighting
+	for i in range(mouse_piece.possible_moves.size()):
+		mouse_piece.possible_moves[i].end_tile.set_highlight(false)
+	
+	# moved event (did the player just put the piece back into its original spot?)
+	if tile == mouse_piece.cached_tile:
+		pass
+	else:
+		moved()
+	
+	# de-linking
+	mouse_piece = null
+
+		
+func moved():
+	pass
+	
+
+func add_piece(piece_type : int, team : int, tile : Tile):
+	var instance = piece_prefab.instance()
+	instance.main_ref = self
+	instance.tile = tile
+	instance.piece_type = piece_type
+	instance.team = team
+	instance.position = tile.position
+	tile.piece = instance
+	teams[team].pieces.append(instance)
+	pieces.append(instance)
+	add_child(instance)
+	
+	
+func parse_fen_string(input : String):
+	# rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+	var fen = input.split(" ")[0]
+	var lines = fen.split("/")
+	var piece_types = PieceType.new().PIECES
+	var ctoint = { "p" : 0, "r" : 1, "n" : 2, "b" : 3,  "q" : 4, "k" : 5}
+	
+	for i in range(lines.size()):
+		var index = 56 - (8*i)
+		for c in lines[i]:
+			if c.is_valid_integer():
+				index += (c as int)
+			elif c.to_upper() == c: # upper case
+				add_piece(ctoint[c.to_lower()], 0, tiles[index])
+				index+=1
+			elif c.to_lower() == c: # lower case
+				add_piece(ctoint[c.to_lower()], 1, tiles[index])
+				index+=1
+	
+
+func create_teams():
+	teams.append(Team.new(0))
+	teams.append(Team.new(1))
 
 func generate_board():
 	var index = -1;
@@ -42,6 +138,7 @@ func generate_board():
 			instance.main_ref = self
 			add_child(instance)
 			tiles.append(instance)
+			
 			
 func position_to_tile(position : Vector2):
 	for i in range(tiles.size()):
