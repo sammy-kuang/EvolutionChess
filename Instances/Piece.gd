@@ -61,6 +61,17 @@ func generate_diagonal_moves():
 	data.append_array(search_for_path_block(tile.get_down_left()))
 	data.append_array(search_for_path_block(tile.get_down_right()))
 	return data
+	
+func is_possible_move(tile):
+	for move in possible_moves:
+		if move.end_tile == tile:
+			return true
+	return false
+
+func get_possible_move(end_tile):
+	for move in possible_moves:
+		if move.end_tile == end_tile:
+			return move
 
 func generate_possible_moves(): # this is gonna be messy...
 	possible_moves.clear()
@@ -87,6 +98,9 @@ func generate_possible_moves(): # this is gonna be messy...
 					possible_moves.append(Move.new(tile, t, self, t.piece))
 				elif !t.has_piece():
 					possible_moves.append(Move.new(tile, t, self, null))
+					
+func results_in_check(move : Move, team : int):
+	pass
 
 func set_tile(new_tile):
 	tile = new_tile

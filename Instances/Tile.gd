@@ -26,8 +26,11 @@ func _ready():
 func on_click():
 	if(main_ref.mouse_piece == null and piece != null):
 		main_ref.pickup(piece)
-	elif(main_ref.mouse_piece != null and piece == null):
-		main_ref.drop(self)
+	elif(main_ref.mouse_piece != null):
+		if main_ref.mouse_piece.is_possible_move(self):
+			main_ref.drop(main_ref.mouse_piece.get_possible_move(self))
+			
+		
 		
 func get_diagonals_of_direction(direction : Vector2, magnitude : int = 7, invert : bool = false):
 	var ret_data = []

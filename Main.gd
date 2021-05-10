@@ -15,6 +15,8 @@ var mouse_tile : Tile = null
 # piece related
 var piece_prefab = preload("res://Instances/Piece.tscn")
 var mouse_piece : Piece = null
+var taken_piece : Piece = null
+var last_move : Move = null
 var pieces = []
 
 # team related
@@ -25,7 +27,7 @@ var teams = []
 func _ready():
 	generate_board()
 	create_teams()
-	parse_fen_string("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+	parse_fen_string("k7/r8/8/8/8/8/R7/KN6 w KQkq - 0 1")
 	
 	var p = pieces[1]
 	var up = p.search_for_path_block(p.tile.get_upward())
@@ -44,6 +46,8 @@ func _input(event):
 	if event.is_action_pressed("click"): # we got a click
 		if mouse_tile != null:
 			mouse_tile.on_click()
+	elif event.is_action_pressed("undo") and last_move != null:
+		undo_move(last_move)
 			
 func pickup(piece : Piece):
 	# setting
@@ -60,28 +64,55 @@ func pickup(piece : Piece):
 		mouse_piece.possible_moves[i].end_tile.set_highlight(true)
 	
 	
-func drop(tile : Tile):
+func drop(move : Move):
 	# setting
-	tile.piece = mouse_piece
-	mouse_piece.position = tile.position
-	mouse_piece.tile = tile
-	mouse_piece.z_index = 0
+	move(move, false)
 	
 	# highlighting
 	for i in range(mouse_piece.possible_moves.size()):
 		mouse_piece.possible_moves[i].end_tile.set_highlight(false)
 	
 	# moved event (did the player just put the piece back into its original spot?)
-	if tile == mouse_piece.cached_tile:
+	if move.end_tile == mouse_piece.cached_tile:
 		pass
 	else:
-		moved()
+		pass
 	
 	# de-linking
 	mouse_piece = null
 
+func move(move : Move, is_simulation : bool = false): # REDO THIS FUNCTION
+	var mp : Piece = move.move_piece
+	var tp : Piece = move.taken_piece
+	var st : Tile = move.start_tile
+	var et : Tile = move.end_tile
+	
+	# start
+	st.piece = null
+	# end
+	et.piece = mp
+	mp.tile = et
+	if !is_simulation:
+		mp.position = et.position
+	
+	# taken
+	if tp != null:
+		tp.visible = false
+		tp.tile = null
 		
-func moved():
+	last_move = move
+		
+		
+func undo_move(move : Move, was_simulation : bool = false):
+	move(Move.new(move.end_tile, move.start_tile, move.move_piece, null), was_simulation)
+	var tp = move.taken_piece
+	if tp != null:
+		move(Move.new(move.end_tile, move.end_tile, tp, null), was_simulation)
+		tp.visible = true
+	
+	
+
+func moved(move : Move):
 	pass
 	
 
