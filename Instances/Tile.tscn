@@ -4,6 +4,7 @@
 [ext_resource path="res://Instances/Tile.gd" type="Script" id=2]
 
 [node name="Tile" type="Sprite"]
+z_index = -1
 texture = ExtResource( 1 )
 script = ExtResource( 2 )
 

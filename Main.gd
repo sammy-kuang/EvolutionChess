@@ -27,13 +27,10 @@ var teams = []
 func _ready():
 	generate_board()
 	create_teams()
-	parse_fen_string("k7/r8/8/8/8/8/R7/KN6 w KQkq - 0 1")
+	parse_fen_string("k7/r8/8/8/8/8/R7/KN5B w KQkq - 0 1")
 	
 	var p = pieces[1]
 	var up = p.search_for_path_block(p.tile.get_upward())
-	
-	#for i in range(up.size()):
-		#up[i].set_highlight(true, up[i].color_order[i])
 	
 func _process(_delta):
 	if get_viewport().get_mouse_position().x > 800+piece_offset:
@@ -41,6 +38,7 @@ func _process(_delta):
 		
 	if mouse_piece != null:
 		mouse_piece.position = get_viewport().get_mouse_position()
+	
 		
 func _input(event):
 	if event.is_action_pressed("click"): # we got a click
@@ -69,8 +67,8 @@ func drop(move : Move):
 	move(move, false)
 	
 	# highlighting
-	for i in range(mouse_piece.possible_moves.size()):
-		mouse_piece.possible_moves[i].end_tile.set_highlight(false)
+	for move in mouse_piece.possible_moves:
+		move.end_tile.set_highlight(false)
 	
 	# moved event (did the player just put the piece back into its original spot?)
 	if move.end_tile == mouse_piece.cached_tile:
@@ -87,6 +85,12 @@ func move(move : Move, is_simulation : bool = false): # REDO THIS FUNCTION
 	var st : Tile = move.start_tile
 	var et : Tile = move.end_tile
 	
+	# taken
+	if tp != null:
+		tp.visible = false
+		tp.tile.piece = null # review that this is actually needed
+		tp.tile = null
+	
 	# start
 	st.piece = null
 	# end
@@ -95,23 +99,18 @@ func move(move : Move, is_simulation : bool = false): # REDO THIS FUNCTION
 	if !is_simulation:
 		mp.position = et.position
 	
-	# taken
-	if tp != null:
-		tp.visible = false
-		tp.tile = null
-		
 	last_move = move
-		
-		
+	
 func undo_move(move : Move, was_simulation : bool = false):
 	move(Move.new(move.end_tile, move.start_tile, move.move_piece, null), was_simulation)
 	var tp = move.taken_piece
 	if tp != null:
-		move(Move.new(move.end_tile, move.end_tile, tp, null), was_simulation)
+		var et = move.end_tile
+		et.piece = tp
+		tp.tile = et
 		tp.visible = true
 	
 	
-
 func moved(move : Move):
 	pass
 	
@@ -150,8 +149,8 @@ func parse_fen_string(input : String):
 	
 
 func create_teams():
-	teams.append(Team.new(0))
-	teams.append(Team.new(1))
+	teams.append(Team.new(0, self))
+	teams.append(Team.new(1, self))
 
 func generate_board():
 	var index = -1;
@@ -167,6 +166,7 @@ func generate_board():
 			instance.index = index
 			instance.tile_pos = Vector2(x, y)
 			instance.main_ref = self
+			instance.white_tile = is_light
 			add_child(instance)
 			tiles.append(instance)
 			

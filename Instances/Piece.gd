@@ -28,7 +28,6 @@ func set_piece_type(new_piece_type : int):
 
 func search_for_path_block(input_array):
 	var ret_data = []
-	print(input_array.size())
 	for i in range(input_array.size()):
 		var t = input_array[i]
 		var piece = t.piece
@@ -73,9 +72,23 @@ func get_possible_move(end_tile):
 		if move.end_tile == end_tile:
 			return move
 
-func generate_possible_moves(): # this is gonna be messy...
+func clear_pseudo_legals():
+	var cache = possible_moves.duplicate()
 	possible_moves.clear()
-	possible_moves.append(Move.new(tile, tile, self, null))
+	for move in cache:
+		main_ref.move(move, true)
+		if !get_team().get_enemy_team().has_enemy_in_check():
+			possible_moves.append(move)
+		main_ref.undo_move(move, true)
+
+#	var move = possible_moves[4]
+#	main_ref.move(move, true)
+#	if !get_team().get_enemy_team().has_enemy_in_check():
+#		possible_moves.append(move)	
+
+func generate_possible_moves(pseudo_check : bool =  true): # this is gonna be messy...
+	possible_moves.clear()
+	
 	var generation = []
 	match piece_type:
 		0: # pawn
@@ -98,6 +111,11 @@ func generate_possible_moves(): # this is gonna be messy...
 					possible_moves.append(Move.new(tile, t, self, t.piece))
 				elif !t.has_piece():
 					possible_moves.append(Move.new(tile, t, self, null))
+	if pseudo_check:
+		clear_pseudo_legals()
+		
+	possible_moves.append(Move.new(tile, tile, self, null)) # always allow the user to put the piece back
+
 					
 func results_in_check(move : Move, team : int):
 	pass
@@ -105,6 +123,9 @@ func results_in_check(move : Move, team : int):
 func set_tile(new_tile):
 	tile = new_tile
 	position = tile.position
+	
+func get_team():
+	return main_ref.teams[team]
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.

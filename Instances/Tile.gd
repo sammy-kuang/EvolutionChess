@@ -3,6 +3,7 @@ class_name Tile
 
 # ui and general info
 var tile_color : Color
+var white_tile = true
 var tile_pos : Vector2
 var index : int = 0
 var main_ref = null
@@ -17,7 +18,7 @@ var color_order = [Color.red, Color.orange, Color.yellow, Color.green, Color.sky
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	self_modulate = tile_color
+	update_color()
 	set_label(index as String)
 	
 	if tile_color == main_ref.black_color: # ui stuff
@@ -199,7 +200,8 @@ func get_label():
 func set_label(text : String):
 	get_child(0).get_child(0).text = text
 	
-
+func update_color():
+	self_modulate = tile_color
 
 func _on_mouse_entered():
 	main_ref.mouse_tile = self
