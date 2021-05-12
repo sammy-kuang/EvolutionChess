@@ -27,7 +27,7 @@ var teams = []
 func _ready():
 	generate_board()
 	create_teams()
-	parse_fen_string("k7/r8/8/8/8/8/R7/KN5B w KQkq - 0 1")
+	parse_fen_string("k7/r8/8/8/8/8/RP6/KN5B w KQkq - 0 1")
 	
 	var p = pieces[1]
 	var up = p.search_for_path_block(p.tile.get_upward())
@@ -50,7 +50,7 @@ func _input(event):
 func pickup(piece : Piece):
 	# setting
 	mouse_piece = piece
-	mouse_piece.generate_possible_moves()
+	mouse_piece.possible_moves = mouse_piece.generate_legal_moves()
 	piece.cached_tile = piece.tile
 	piece.z_index = 1
 	# de-linking
@@ -74,7 +74,7 @@ func drop(move : Move):
 	if move.end_tile == mouse_piece.cached_tile:
 		pass
 	else:
-		pass
+		moved(move)
 	
 	# de-linking
 	mouse_piece = null
@@ -112,18 +112,19 @@ func undo_move(move : Move, was_simulation : bool = false):
 	
 	
 func moved(move : Move):
-	pass
+	var move_piece = move.move_piece
+	move_piece.has_moved = true
 	
 
-func add_piece(piece_type : int, team : int, tile : Tile):
+func add_piece(piece_type : int, team_index : int, tile : Tile):
 	var instance = piece_prefab.instance()
 	instance.main_ref = self
 	instance.tile = tile
 	instance.piece_type = piece_type
-	instance.team = team
+	instance.team_index = team_index
 	instance.position = tile.position
 	tile.piece = instance
-	teams[team].pieces.append(instance)
+	teams[team_index].pieces.append(instance)
 	pieces.append(instance)
 	add_child(instance)
 	

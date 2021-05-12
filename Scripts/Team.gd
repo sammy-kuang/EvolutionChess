@@ -45,13 +45,22 @@ func get_enemy_team_index():
 	return 1 if team_index == 0 else 0	
 	
 func has_enemy_in_check():
-	for piece in pieces:
-		if piece.visible == false: # Piece is taken
-			continue
+	for piece in alive_pieces():
 		
-		piece.generate_possible_moves(false)
-		for move in piece.possible_moves:
+		var moves = piece.generate_possible_moves()
+		for move in moves:
 			if move.end_tile.index == get_enemy_king().tile.index:
 				return true
 	return false
-		
+
+func alive_pieces():
+	var ret = []
+	for piece in pieces:
+		if piece.visible == true:
+			ret.append(piece)
+	return ret	
+
+func generate_moves():
+	for piece in alive_pieces():
+		var dat = piece.generate_possible_moves()
+		return dat

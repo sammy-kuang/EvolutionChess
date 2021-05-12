@@ -31,7 +31,14 @@ func on_click():
 		if main_ref.mouse_piece.is_possible_move(self):
 			main_ref.drop(main_ref.mouse_piece.get_possible_move(self))
 			
-		
+func is_placeable(team_index : int) -> bool:
+	if has_piece():
+		if has_enemy_piece(team_index):
+			return true
+		else:
+			return false
+	else:
+		return true
 		
 func get_diagonals_of_direction(direction : Vector2, magnitude : int = 7, invert : bool = false):
 	var ret_data = []
@@ -188,9 +195,16 @@ func set_highlight(value : bool, color : Color = main_ref.highlight_color):
 func has_piece():
 	return (piece != null)
 
-func has_enemy_piece(team : int):
+func get_enemy_piece(team_index : int):
+	if has_enemy_piece(team_index):
+		return piece
+	else:
+		return null
+	
+
+func has_enemy_piece(team_index : int):
 	if(has_piece()):
-		return piece.team != team
+		return piece.team_index != team_index
 	else:
 		return false
 
