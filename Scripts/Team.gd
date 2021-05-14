@@ -8,8 +8,10 @@ var TEAM = {
 	1 : "black"
 }
 
+# pieces and team specific
 var pieces = []
 var team_index = 0
+var in_check : bool = false
 
 func _init(team_index:int = 0, main_ref = null):
 	self.team_index = team_index
@@ -46,10 +48,24 @@ func get_enemy_team_index():
 	
 func has_enemy_in_check():
 	for piece in alive_pieces():
-		
 		var moves = piece.generate_possible_moves()
 		for move in moves:
 			if move.end_tile.index == get_enemy_king().tile.index:
+				return true
+	return false
+	
+func pred_enemy_in_check():
+	for piece in alive_pieces():
+		var moves = piece.possible_moves
+		for move in moves:
+			if move.end_tile.index == get_enemy_king().tile.index:
+				return true
+	return false
+
+func is_attacking_tile(tile) -> bool:
+	for piece in alive_pieces():
+		for move in piece.generate_possible_moves():
+			if move.end_tile == tile:
 				return true
 	return false
 

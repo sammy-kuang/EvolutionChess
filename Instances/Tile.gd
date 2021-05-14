@@ -19,7 +19,7 @@ var color_order = [Color.red, Color.orange, Color.yellow, Color.green, Color.sky
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	update_color()
-	set_label(index as String)
+	set_label("")
 	
 	if tile_color == main_ref.black_color: # ui stuff
 		get_label().add_color_override("font_color", Color.white)
@@ -194,6 +194,11 @@ func set_highlight(value : bool, color : Color = main_ref.highlight_color):
 	
 func has_piece():
 	return (piece != null)
+
+func has_piece_type(piece_type : int):
+	if has_piece():
+		return piece.piece_type == piece_type
+	return false
 
 func get_enemy_piece(team_index : int):
 	if has_enemy_piece(team_index):

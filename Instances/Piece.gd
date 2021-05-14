@@ -16,11 +16,18 @@ var team_prefix = ""
 var possible_moves = [] # type Move
 var has_moved : bool = false
 
+# unique data concept
+var unique_data = []
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	main_ref = tile.main_ref
 	team_prefix = "white_" if team_index == 0 else "black_"
 	set_piece_type(piece_type)
+	initialize_unique_data()
+	
+func initialize_unique_data():
+	unique_data.resize(10)
 	
 func set_piece_type(new_piece_type : int):
 	piece_type = new_piece_type
@@ -71,20 +78,6 @@ func get_possible_move(end_tile):
 	for move in possible_moves:
 		if move.end_tile == end_tile:
 			return move
-
-func clear_pseudo_legals():
-	var cache = possible_moves.duplicate()
-	possible_moves.clear()
-	for move in cache:
-		main_ref.move(move, true)
-		if !get_team().get_enemy_team().has_enemy_in_check():
-			possible_moves.append(move)
-		main_ref.undo_move(move, true)
-
-#	var move = possible_moves[4]
-#	main_ref.move(move, true)
-#	if !get_team().get_enemy_team().has_enemy_in_check():
-#		possible_moves.append(move)	
 
 func generate_possible_moves(): # this is gonna be messy...
 	possible_moves.clear()
@@ -154,13 +147,75 @@ func generate_legal_moves():
 	var legal_moves = []
 	var enemy_team = get_team().get_enemy_team()
 	for move in moves:
-		main_ref.move(move, true)
+		main_ref.move(move, true) # simulate the move
 		if !enemy_team.has_enemy_in_check():
 			legal_moves.append(move)
-		main_ref.undo_move(move, true)
+		main_ref.undo_move(move, true) # un-simulate it lol
 	legal_moves.append(Move.new(tile, tile, self, null)) # always allow the user to put the piece back
-
+	legal_moves.append_array(add_castles(enemy_team))
 	return legal_moves
+
+func add_castles(enemy_team): # super messy lol
+	var castles = []
+	var tiles = main_ref.tiles
+	if piece_type == 5: # are we a king? # unique data will be in the form of moves for the rook
+		
+		if has_moved: # cant castle if the king has moved
+			cant_castle_side(0)
+			cant_castle_side(1)
+			return castles
+			
+		if enemy_team.has_enemy_in_check():
+			cant_castle_side(0)
+			cant_castle_side(1)
+			return castles
+		
+		var start_index = team_index * 7
+		var start_tile = tiles[start_index]
+		var king_index = start_index+4
+		if start_tile.has_piece() and !start_tile.has_enemy_piece(team_index): # checking the left side
+			if start_tile.has_piece_type(1) and !start_tile.piece.has_moved: # rook on the left present
+				for i in range(start_index+1, king_index):
+					if tiles[i].has_piece(): # blocked
+						cant_castle_side(0)
+						break
+					if enemy_team.is_attacking_tile(tiles[i]): # enemy is attacking the path
+						cant_castle_side(0)
+						break
+						
+					if i == start_index+3: # path is clear, dude can castle queen side
+						castles.append(Move.new(tile, tiles[start_index+2], self, null))
+						unique_data[0] = Move.new(start_tile, tiles[start_index+3], start_tile.piece, null)
+			else:
+				cant_castle_side(0)
+		else:
+			cant_castle_side(0)
+		
+		# castling king side
+		var end_index = start_index+7
+		var end_tile = tiles[end_index]
+		if end_tile.has_piece() and !end_tile.has_enemy_piece(team_index): # checking the right side
+			if end_tile.has_piece_type(1) and !end_tile.piece.has_moved: # rook on the right  present
+				for i in range(king_index+1, end_index):
+					if tiles[i].has_piece(): # blocked
+						cant_castle_side(1)
+						break
+					if enemy_team.is_attacking_tile(tiles[i]): # enemy is attacking the path
+						cant_castle_side(1)
+						break
+
+					if i == end_index-1: # path is clear, dude can castle king side
+						castles.append(Move.new(tile, tiles[end_index-1], self, null))
+						unique_data[1] = Move.new(end_tile, tiles[start_index+5], end_tile.piece, null)
+			else:
+				cant_castle_side(1)
+		else:
+			cant_castle_side(1)
+
+	return castles
+
+func cant_castle_side(index : int):
+	unique_data[index] = null
 
 func set_tile(new_tile):
 	tile = new_tile

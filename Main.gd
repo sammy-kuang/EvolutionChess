@@ -10,7 +10,7 @@ export var piece_offset : float = 0
 # tile related
 var tile_prefab = preload("res://Instances/Tile.tscn")
 var tiles = []
-var mouse_tile : Tile = null
+var mouse_tile = null
 
 # piece related
 var piece_prefab = preload("res://Instances/Piece.tscn")
@@ -27,7 +27,8 @@ var teams = []
 func _ready():
 	generate_board()
 	create_teams()
-	parse_fen_string("k7/r8/8/8/8/8/RP6/KN5B w KQkq - 0 1")
+#	parse_fen_string("4k3/r7/8/8/8/8/8/R3K2R w KQkq - 0 1")
+	parse_fen_string("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
 	
 	var p = pieces[1]
 	var up = p.search_for_path_block(p.tile.get_upward())
@@ -45,7 +46,7 @@ func _input(event):
 		if mouse_tile != null:
 			mouse_tile.on_click()
 	elif event.is_action_pressed("undo") and last_move != null:
-		undo_move(last_move)
+		get_tree().reload_current_scene()
 			
 func pickup(piece : Piece):
 	# setting
@@ -66,9 +67,16 @@ func drop(move : Move):
 	# setting
 	move(move, false)
 	
+	# variables
+	var friendly_team = move.move_piece.get_team()
+	var enemy_team = friendly_team.get_enemy_team()
+	
 	# highlighting
 	for move in mouse_piece.possible_moves:
 		move.end_tile.set_highlight(false)
+	
+	# check checking
+	enemy_team.in_check = friendly_team.has_enemy_in_check()
 	
 	# moved event (did the player just put the piece back into its original spot?)
 	if move.end_tile == mouse_piece.cached_tile:
@@ -82,8 +90,8 @@ func drop(move : Move):
 func move(move : Move, is_simulation : bool = false): # REDO THIS FUNCTION
 	var mp : Piece = move.move_piece
 	var tp : Piece = move.taken_piece
-	var st : Tile = move.start_tile
-	var et : Tile = move.end_tile
+	var st  = move.start_tile
+	var et  = move.end_tile
 	
 	# taken
 	if tp != null:
@@ -115,8 +123,24 @@ func moved(move : Move):
 	var move_piece = move.move_piece
 	move_piece.has_moved = true
 	
+	# castle check
+	castle_check(move)
 
-func add_piece(piece_type : int, team_index : int, tile : Tile):
+func castle_check(move : Move):
+	var mp = move.move_piece
+	if mp.piece_type == 5: # is king?
+		var queen_side = mp.unique_data[0]
+		var king_side = mp.unique_data[1]
+		var start_index = move.move_piece.team_index * 7
+		if queen_side != null: # the user probably could castle queen side
+			if move.end_tile.index == start_index+2:
+				move(queen_side)
+		
+		if king_side != null: # the user probably could castle queen side
+			if move.end_tile.index == start_index+6:
+				move(king_side)
+
+func add_piece(piece_type : int, team_index : int, tile):
 	var instance = piece_prefab.instance()
 	instance.main_ref = self
 	instance.tile = tile

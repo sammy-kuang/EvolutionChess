@@ -51,7 +51,7 @@ _global_script_class_icons={
 [application]
 
 config/name="ChessGame"
-run/main_scene="res://Main.tscn"
+run/main_scene="res://Scene.tscn"
 config/icon="res://icon.png"
 
 [display]
@@ -63,6 +63,7 @@ window/size/resizable=false
 [global]
 
 Stack=false
+Scene=false
 
 [input]
 
