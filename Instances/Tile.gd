@@ -19,7 +19,7 @@ var color_order = [Color.red, Color.orange, Color.yellow, Color.green, Color.sky
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	update_color()
-	set_label("")
+	set_label(index as String)
 	
 	if tile_color == main_ref.black_color: # ui stuff
 		get_label().add_color_override("font_color", Color.white)

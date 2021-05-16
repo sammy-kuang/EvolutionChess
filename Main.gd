@@ -38,7 +38,7 @@ func _process(_delta):
 		mouse_tile = null
 		
 	if mouse_piece != null:
-		mouse_piece.position = get_viewport().get_mouse_position()
+		mouse_piece.position = get_global_mouse_position()
 	
 		
 func _input(event):
@@ -122,6 +122,7 @@ func undo_move(move : Move, was_simulation : bool = false):
 func moved(move : Move):
 	var move_piece = move.move_piece
 	move_piece.has_moved = true
+	move_piece.times_moved += 1
 	
 	# castle check
 	castle_check(move)

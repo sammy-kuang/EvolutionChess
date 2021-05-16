@@ -13,6 +13,7 @@ var team_index = 0
 var team_prefix = ""
 
 # moves
+var times_moved = 0 # how many times has this piece moved?
 var possible_moves = [] # type Move
 var has_moved : bool = false
 
@@ -84,7 +85,7 @@ func generate_possible_moves(): # this is gonna be messy...
 	
 	var generation = []
 	match piece_type:
-		0: # pawn
+		0: # pawn ( i should probably try cleaning up this code ) 
 			var y = 1 if team_index == 0 else -1
 			var vec = Vector2(tile.tile_pos.x, tile.tile_pos.y + y)
 			var t = main_ref.position_to_tile(vec)
@@ -107,6 +108,24 @@ func generate_possible_moves(): # this is gonna be messy...
 			if right != null:
 				if right.has_enemy_piece(team_index):
 					generation.append(Move.new(tile, right, self, right.piece))
+					
+			# en passant
+			var start_y = 1 if team_index == 0 else 6 # where does the team's pawns start?
+			var fifth_rank = start_y+(y*3) # get the current team's fifth rank
+			
+			if tile.tile_pos.y == fifth_rank: # capturing pawn must be on its fifth rank
+				var adjacents = []
+				adjacents.append(main_ref.position_to_tile(Vector2(tile.tile_pos.x-1, tile.tile_pos.y))) # left
+				adjacents.append(main_ref.position_to_tile(Vector2(tile.tile_pos.x+1, tile.tile_pos.y))) # right
+				for adjacent in adjacents: # typeof tile
+					if adjacent == null:
+						continue
+						
+					if adjacent.has_enemy_piece(team_index) and adjacent.has_piece_type(0): # 0 for pawn
+						if adjacent.piece.times_moved == 1: # the captured pawn must have only moved in a double step
+							generation.append(Move.new(tile, main_ref.position_to_tile(Vector2(adjacent.tile_pos.x, adjacent.tile_pos.y+y)), self, adjacent.piece))
+				pass
+			
 		1: # rook
 			generation.append_array(generate_vertical_moves())
 			generation.append_array(generate_horizontal_moves())
@@ -154,6 +173,9 @@ func generate_legal_moves():
 	legal_moves.append(Move.new(tile, tile, self, null)) # always allow the user to put the piece back
 	legal_moves.append_array(add_castles(enemy_team))
 	return legal_moves
+
+func add_en_passants():
+	pass
 
 func add_castles(enemy_team): # super messy lol
 	var castles = []

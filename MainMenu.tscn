@@ -1,0 +1,23 @@
+[gd_scene format=2]
+
+[node name="MainMenu" type="Node2D"]
+
+[node name="Host" type="Button" parent="."]
+margin_left = 169.706
+margin_top = 79.196
+margin_right = 595.706
+margin_bottom = 299.196
+text = "Host"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Join" type="Button" parent="."]
+margin_left = 177.715
+margin_top = 386.209
+margin_right = 603.715
+margin_bottom = 606.209
+text = "Join"
+__meta__ = {
+"_edit_use_anchors_": false
+}
