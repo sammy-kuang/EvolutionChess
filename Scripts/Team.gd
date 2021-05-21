@@ -13,8 +13,8 @@ var pieces = []
 var team_index = 0
 var in_check : bool = false
 
-func _init(team_index:int = 0, main_ref = null):
-	self.team_index = team_index
+func _init(team_number:int = 0, main_ref = null):
+	self.team_index = team_number
 	self.main_ref = main_ref
 	
 

@@ -123,7 +123,8 @@ func generate_possible_moves(): # this is gonna be messy...
 						
 					if adjacent.has_enemy_piece(team_index) and adjacent.has_piece_type(0): # 0 for pawn
 						if adjacent.piece.times_moved == 1: # the captured pawn must have only moved in a double step
-							generation.append(Move.new(tile, main_ref.position_to_tile(Vector2(adjacent.tile_pos.x, adjacent.tile_pos.y+y)), self, adjacent.piece))
+							if main_ref.last_move.move_piece == adjacent.piece: # the capture can only be made on the move immediately after the enemy pawn makes the double-step move; otherwise, the right to capture it en passant is lost.
+								generation.append(Move.new(tile, main_ref.position_to_tile(Vector2(adjacent.tile_pos.x, adjacent.tile_pos.y+y)), self, adjacent.piece))
 				pass
 			
 		1: # rook
@@ -192,7 +193,7 @@ func add_castles(enemy_team): # super messy lol
 			cant_castle_side(1)
 			return castles
 		
-		var start_index = team_index * 7
+		var start_index = team_index * (56)
 		var start_tile = tiles[start_index]
 		var king_index = start_index+4
 		if start_tile.has_piece() and !start_tile.has_enemy_piece(team_index): # checking the left side

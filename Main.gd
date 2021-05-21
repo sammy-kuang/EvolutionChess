@@ -22,7 +22,6 @@ var pieces = []
 # team related
 var teams = []
 
-
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	generate_board()
@@ -109,6 +108,25 @@ func move(move : Move, is_simulation : bool = false): # REDO THIS FUNCTION
 	
 	last_move = move
 	
+	if Server.connected_global and !is_simulation:
+		var cipher = cipher_move_to_indexes(move)
+		Server.upload_move(cipher[0], cipher[1], cipher[2], cipher[3])
+	
+func cipher_move_to_indexes(move : Move):
+	var a = pieces.find(move.move_piece)
+	var b = pieces.find(move.taken_piece)
+	var c = move.start_tile.index
+	var d = move.end_tile.index
+	return [a,b,c,d]
+
+func decipher_move_indexes(m, t, s, e):
+	var mp : Piece = pieces[m]
+	var tp : Piece = pieces[t] if t != -1 else null
+	var st = s
+	var et = e
+	
+	return Move.new(mp,tp,st,et)
+	
 func undo_move(move : Move, was_simulation : bool = false):
 	move(Move.new(move.end_tile, move.start_tile, move.move_piece, null), was_simulation)
 	var tp = move.taken_piece
@@ -132,7 +150,7 @@ func castle_check(move : Move):
 	if mp.piece_type == 5: # is king?
 		var queen_side = mp.unique_data[0]
 		var king_side = mp.unique_data[1]
-		var start_index = move.move_piece.team_index * 7
+		var start_index = move.move_piece.team_index * 56
 		if queen_side != null: # the user probably could castle queen side
 			if move.end_tile.index == start_index+2:
 				move(queen_side)
@@ -187,7 +205,7 @@ func generate_board():
 			var is_light : bool = ((x+y) % 2 != 0)
 			var color = white_color if is_light else black_color
 			# setting the properties of the tile
-			instance.position = Vector2((x*100+50+piece_offset), 800-(y*100+50-piece_offset))
+			instance.global_position = Vector2((x*100+50+piece_offset), 800-(y*100+50-piece_offset))
 			instance.tile_color = color
 			instance.index = index
 			instance.tile_pos = Vector2(x, y)

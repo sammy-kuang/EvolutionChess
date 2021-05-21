@@ -1,11 +1,19 @@
-[gd_scene load_steps=2 format=2]
+[gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://Main.tscn" type="PackedScene" id=1]
+[ext_resource path="res://Sprites/center_upgrade_star.png" type="Texture" id=2]
 
 [node name="Scene" type="Node2D"]
 
-[node name="Main Camera" type="Camera2D" parent="."]
+[node name="Scene Camera" type="Camera2D" parent="."]
+offset = Vector2( 400, 400 )
 current = true
 
-[node name="Main" parent="Main Camera" instance=ExtResource( 1 )]
-piece_offset = -400.0
+[node name="Main" parent="." instance=ExtResource( 1 )]
+highlight_color = Color( 0.52549, 0.764706, 0.156863, 1 )
+
+[node name="center_upgrade_star" type="Sprite" parent="."]
+visible = false
+position = Vector2( 448.465, 448.27 )
+z_index = 50
+texture = ExtResource( 2 )

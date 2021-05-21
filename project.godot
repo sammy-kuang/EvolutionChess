@@ -50,9 +50,12 @@ _global_script_class_icons={
 
 [application]
 
-config/name="ChessGame"
-run/main_scene="res://Main.tscn"
-config/icon="res://icon.png"
+config/name="EvolutionChess"
+run/main_scene="res://MainMenu.tscn"
+
+[autoload]
+
+Server="*res://Scripts/Server.gd"
 
 [display]
 
