@@ -12,7 +12,7 @@ var scene_prefab = preload("res://Scene.tscn")
 # session specifics
 var has_session = false
 var scene = null
-var board = null # Main type
+var board : Main = null # Main type
 var enemy_id : int = -1
 
 
@@ -88,9 +88,14 @@ remote func session_start(id : int):
 # -- MAKING THE ACTUAL MOVES !!! ---
 
 func upload_move(a,b,c,d):
+	if enemy_id == -1: # don't upload the move if we dont have an opponent!
+		return
+		
 	rpc_id(enemy_id, "process_move", a,b,c,d)
 	
 
 remote func process_move(a,b,c,d):
-	print(str(a) + ","+str(b) + ","+str(c) + ","+str(d) )
+	board.move(board.decipher_move_indexes(int(a),int(b),int(c),int(d)))
+#	print(board.decipher_move_indexes(int(a),int(b),int(c),int(d)).taken_piece)
 # -----------------------------------------
+

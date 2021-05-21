@@ -107,11 +107,12 @@ func move(move : Move, is_simulation : bool = false): # REDO THIS FUNCTION
 		mp.position = et.position
 	
 	last_move = move
-	
-	if Server.connected_global and !is_simulation:
+
+func upload_move_cipher(move : Move):
+	if Server.connected_global:
 		var cipher = cipher_move_to_indexes(move)
 		Server.upload_move(cipher[0], cipher[1], cipher[2], cipher[3])
-	
+
 func cipher_move_to_indexes(move : Move):
 	var a = pieces.find(move.move_piece)
 	var b = pieces.find(move.taken_piece)
@@ -122,10 +123,10 @@ func cipher_move_to_indexes(move : Move):
 func decipher_move_indexes(m, t, s, e):
 	var mp : Piece = pieces[m]
 	var tp : Piece = pieces[t] if t != -1 else null
-	var st = s
-	var et = e
+	var st = tiles[s]
+	var et = tiles[e]
 	
-	return Move.new(mp,tp,st,et)
+	return Move.new(st,et,mp,tp)
 	
 func undo_move(move : Move, was_simulation : bool = false):
 	move(Move.new(move.end_tile, move.start_tile, move.move_piece, null), was_simulation)
@@ -142,8 +143,21 @@ func moved(move : Move):
 	move_piece.has_moved = true
 	move_piece.times_moved += 1
 	
+	# store the moves that need to be pushed to the network
+	var network_updates = []
+	
+	# add the current move to the network queue
+	network_updates.append(move)
+	
 	# castle check
-	castle_check(move)
+	var is_castle = castle_check(move)
+	if is_castle != null:
+		move(is_castle)
+		network_updates.append(is_castle) # add the castle move to the network queue
+		
+	# upload the queued to the network
+	for move in network_updates:
+		upload_move_cipher(move)
 
 func castle_check(move : Move):
 	var mp = move.move_piece
@@ -153,11 +167,11 @@ func castle_check(move : Move):
 		var start_index = move.move_piece.team_index * 56
 		if queen_side != null: # the user probably could castle queen side
 			if move.end_tile.index == start_index+2:
-				move(queen_side)
+				return queen_side
 		
 		if king_side != null: # the user probably could castle queen side
 			if move.end_tile.index == start_index+6:
-				move(king_side)
+				return king_side
 
 func add_piece(piece_type : int, team_index : int, tile):
 	var instance = piece_prefab.instance()

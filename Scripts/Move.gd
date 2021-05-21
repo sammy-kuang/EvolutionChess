@@ -1,5 +1,3 @@
-extends Node
-
 class_name Move
 
 var start_tile  = null
