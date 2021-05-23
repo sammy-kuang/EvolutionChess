@@ -21,6 +21,7 @@ var pieces = []
 
 # team related
 var teams = []
+var current_turn = 0
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -136,12 +137,15 @@ func undo_move(move : Move, was_simulation : bool = false):
 		et.piece = tp
 		tp.tile = et
 		tp.visible = true
+
+func update_session_info(move : Move): # yikes. getting a bit messy
+	move.move_piece.times_moved += 1 
+	move.move_piece.has_moved = true
 	
 	
 func moved(move : Move):
 	var move_piece = move.move_piece
-	move_piece.has_moved = true
-	move_piece.times_moved += 1
+	update_session_info(move) # Update the times moved, the has moved, etc
 	
 	# store the moves that need to be pushed to the network
 	var network_updates = []
@@ -245,3 +249,9 @@ func get_vector_directions(vector : Vector2):
 
 func get_tiles():
 	return tiles
+	
+func flip_board():
+	var camera : Camera2D = get_parent().get_node("Scene Camera")
+	camera.rotation_degrees = 180
+	for piece in pieces:
+		piece.flip_v = true

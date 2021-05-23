@@ -19,12 +19,25 @@ var color_order = [Color.red, Color.orange, Color.yellow, Color.green, Color.sky
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	update_color()
-	set_label(index as String)
+	set_label("")
 	
 	if tile_color == main_ref.black_color: # ui stuff
 		get_label().add_color_override("font_color", Color.white)
 		
 func on_click():
+	
+	# session
+	if Server.has_session: # we are in a multiplayer game!
+		if(main_ref.mouse_piece == null and piece != null):
+			if piece.team_index == Server.team_index: # make sure we're only picking up our team's pieces
+				main_ref.pickup(piece)
+		elif(main_ref.mouse_piece != null):
+			if main_ref.mouse_piece.is_possible_move(self):
+				main_ref.drop(main_ref.mouse_piece.get_possible_move(self))
+		return
+	
+	
+	# session less
 	if(main_ref.mouse_piece == null and piece != null):
 		main_ref.pickup(piece)
 	elif(main_ref.mouse_piece != null):
