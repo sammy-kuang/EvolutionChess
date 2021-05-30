@@ -20,6 +20,11 @@ var has_moved : bool = false
 # unique data concept
 var unique_data = []
 
+# upgraded concept
+var upgraded : bool = false
+var default_texture : Resource = null
+var upgraded_texture : Resource = null
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	main_ref = tile.main_ref
@@ -32,9 +37,12 @@ func initialize_unique_data():
 	
 func set_piece_type(new_piece_type : int):
 	piece_type = new_piece_type
-	texture = load("res://Sprites/"+team_prefix+PieceType.new().PIECES[piece_type].to_lower()+".png")
+	default_texture = load("res://Sprites/"+team_prefix+PieceType.new().PIECES[piece_type].to_lower()+".png")
+	upgraded_texture = load("res://Sprites/"+team_prefix+PieceType.new().PIECES[piece_type].to_lower()+"_upgraded.png")
+	
+	texture = default_texture
 
-func search_for_path_block(input_array):
+func search_for_path_block(input_array, pierce_amount : int = 0):
 	var ret_data = []
 	for i in range(input_array.size()):
 		var t = input_array[i]
@@ -46,7 +54,11 @@ func search_for_path_block(input_array):
 				break
 			else:
 				ret_data.append(Move.new(self.tile, t, self, piece))
-				break
+				if pierce_amount <= 0:
+					break
+				else:
+					pierce_amount -= 1
+					continue
 	return ret_data
 
 func generate_vertical_moves():
@@ -163,10 +175,50 @@ func generate_possible_moves(): # this is gonna be messy...
 	return generation
 	
 func generate_upgraded_moves():
-	pass
+	var generation = []
 	
-func generate_legal_moves():
-	var moves = generate_possible_moves()
+	match piece_type:
+		1: # rook
+			pass
+		2: # knight
+			var a = []
+			var tp = tile.tile_pos
+			a.append(Vector2(tp.x+2, tp.y))
+			a.append(Vector2(tp.x-2, tp.y))
+			a.append(Vector2(tp.x, tp.y+2))
+			a.append(Vector2(tp.x, tp.y-2))
+			
+			for b in a:
+				var t = main_ref.position_to_tile(b)
+				if t != null:
+					if t.is_placeable(team_index):
+						var p = t.get_enemy_piece(team_index)
+						generation.append(Move.new(tile, t, self, p))
+		3: # bishop
+			var data = []
+			data.append_array(search_for_path_block(tile.get_up_left(), 1))
+			data.append_array(search_for_path_block(tile.get_up_right(), 1))
+			data.append_array(search_for_path_block(tile.get_down_left(), 1))
+			data.append_array(search_for_path_block(tile.get_down_right(), 1))
+			
+			generation.append_array(data)
+			
+			for move in data: # dont let the upgraded bishop pierce to the king!
+				if move.taken_piece != null:
+					if move.taken_piece.piece_type == 5: # 5 is king?
+						generation.erase(move)
+		4: # queen
+			pass
+		5: # king
+			pass
+		
+	return generation
+	
+func set_upgraded_state(state : bool):
+	upgraded = state
+	texture = default_texture if !state else upgraded_texture
+	
+func generate_legal_moves(moves):
 	var legal_moves = []
 	var enemy_team = get_team().get_enemy_team()
 	for move in moves:

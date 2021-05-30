@@ -24,14 +24,18 @@ func _ready():
 	if tile_color == main_ref.black_color: # ui stuff
 		get_label().add_color_override("font_color", Color.white)
 		
-func on_click():
-	
+func on_click(mouse_index : int = 0):
 	# session
 	if Server.has_session: # we are in a multiplayer game!
 		if(main_ref.mouse_piece == null and piece != null):
+			
+			if mouse_index == 1 and !piece.upgraded:
+				print("attempt to rightclick piece but piece not upgreaded")
+				return
+			
 			if piece.team_index == Server.team_index: # make sure we're only picking up our team's pieces
 				if main_ref.current_turn == piece.team_index:
-					main_ref.pickup(piece)
+					main_ref.pickup(piece, mouse_index)
 		elif(main_ref.mouse_piece != null):
 			if main_ref.mouse_piece.is_possible_move(self):
 				main_ref.drop(main_ref.mouse_piece.get_possible_move(self))
@@ -40,8 +44,10 @@ func on_click():
 	
 	# session less
 	if(main_ref.mouse_piece == null and piece != null):
+		if mouse_index == 1 and !piece.upgraded:
+			return
 		if main_ref.current_turn == piece.team_index:
-			main_ref.pickup(piece)
+			main_ref.pickup(piece, mouse_index)
 	elif(main_ref.mouse_piece != null):
 		if main_ref.mouse_piece.is_possible_move(self):
 			main_ref.drop(main_ref.mouse_piece.get_possible_move(self))
@@ -74,13 +80,13 @@ func get_diagonals_of_direction(direction : Vector2, magnitude : int = 7, invert
 	
 	return ret_data
 	
-func get_surrounding_tiles():
+func get_surrounding_tiles(magnitude : int = 1):
 	if !surrounding_tiles.empty():
 		return surrounding_tiles
 	
-	var h = get_horizontals(1)
-	var v = get_verticals(1)
-	var t = [get_up_right(1), get_up_left(1), get_down_right(1), get_down_left(1), h, v]
+	var h = get_horizontals(magnitude)
+	var v = get_verticals(magnitude)
+	var t = [get_up_right(magnitude), get_up_left(magnitude), get_down_right(magnitude), get_down_left(magnitude), h, v]
 	
 	for i in range(t.size()):
 		if(!t[i].empty()):

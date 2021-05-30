@@ -49,6 +49,10 @@ func get_enemy_team_index():
 func has_enemy_in_check():
 	for piece in alive_pieces():
 		var moves = piece.generate_possible_moves()
+		
+		if piece.upgraded:
+			moves.append_array(piece.generate_upgraded_moves())
+		
 		for move in moves:
 			if move.end_tile.index == get_enemy_king().tile.index:
 				return true

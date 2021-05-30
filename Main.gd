@@ -6,6 +6,7 @@ export var white_color : Color = Color.white
 export var black_color : Color = Color.black
 export var highlight_color : Color = Color.greenyellow
 export var check_color : Color = Color.red
+export var upgraded_move_color : Color = Color.gold
 export var piece_offset : float = 0
 
 # tile related
@@ -30,6 +31,7 @@ func _ready():
 	create_teams()
 #	parse_fen_string("4k3/r7/8/8/8/8/8/R3K2R w KQkq - 0 1")
 	parse_fen_string("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+	set_piece_upgraded_state(29, true)
 
 	
 func _process(_delta):
@@ -41,16 +43,24 @@ func _process(_delta):
 	
 		
 func _input(event):
-	if event.is_action_pressed("click"): # we got a click
+	var mouse_event : bool = event.is_action_pressed("click") or event.is_action_pressed("right_click")
+	
+	if mouse_event:
+		var mouse_index : int = 0 if event.is_action_pressed("click") else 1
 		if mouse_tile != null:
-			mouse_tile.on_click()
-	elif event.is_action_pressed("undo") and last_move != null:
+			mouse_tile.on_click(mouse_index)
+			
+	elif event.is_action_pressed("undo") and !Server.has_session:
 		get_tree().reload_current_scene()
 			
-func pickup(piece : Piece):
+func pickup(piece : Piece, mouse_index : int = 0):
+	# getting
+	var m = piece.generate_possible_moves() if mouse_index == 0 else piece.generate_upgraded_moves()
+	var c = highlight_color if mouse_index == 0 else upgraded_move_color
+	print(mouse_index)
 	# setting
 	mouse_piece = piece
-	mouse_piece.possible_moves = mouse_piece.generate_legal_moves()
+	mouse_piece.possible_moves = mouse_piece.generate_legal_moves(m)
 	piece.cached_tile = piece.tile
 	piece.z_index = 1
 	# de-linking
@@ -59,7 +69,7 @@ func pickup(piece : Piece):
 	
 	# highlighting
 	for i in range(mouse_piece.possible_moves.size()):
-		mouse_piece.possible_moves[i].end_tile.set_highlight(true)
+		mouse_piece.possible_moves[i].end_tile.set_highlight(true, c)
 	
 	
 func drop(move : Move):
@@ -106,6 +116,10 @@ func move(move : Move, is_simulation : bool = false): # REDO THIS FUNCTION
 	if !is_simulation:
 		mp.position = et.position
 		last_move = move
+
+
+func set_piece_upgraded_state(piece_index : int, state : bool):
+	pieces[piece_index].set_upgraded_state(state)
 
 func upload_move_cipher(move : Move):
 	if Server.connected_global:
