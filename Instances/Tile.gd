@@ -30,7 +30,8 @@ func on_click():
 	if Server.has_session: # we are in a multiplayer game!
 		if(main_ref.mouse_piece == null and piece != null):
 			if piece.team_index == Server.team_index: # make sure we're only picking up our team's pieces
-				main_ref.pickup(piece)
+				if main_ref.current_turn == piece.team_index:
+					main_ref.pickup(piece)
 		elif(main_ref.mouse_piece != null):
 			if main_ref.mouse_piece.is_possible_move(self):
 				main_ref.drop(main_ref.mouse_piece.get_possible_move(self))
@@ -39,7 +40,8 @@ func on_click():
 	
 	# session less
 	if(main_ref.mouse_piece == null and piece != null):
-		main_ref.pickup(piece)
+		if main_ref.current_turn == piece.team_index:
+			main_ref.pickup(piece)
 	elif(main_ref.mouse_piece != null):
 		if main_ref.mouse_piece.is_possible_move(self):
 			main_ref.drop(main_ref.mouse_piece.get_possible_move(self))

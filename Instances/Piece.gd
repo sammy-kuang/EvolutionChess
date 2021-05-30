@@ -69,9 +69,9 @@ func generate_diagonal_moves():
 	data.append_array(search_for_path_block(tile.get_down_right()))
 	return data
 	
-func is_possible_move(tile):
+func is_possible_move(move_tile):
 	for move in possible_moves:
-		if move.end_tile == tile:
+		if move.end_tile == move_tile:
 			return true
 	return false
 
@@ -161,6 +161,9 @@ func generate_possible_moves(): # this is gonna be messy...
 		
 	
 	return generation
+	
+func generate_upgraded_moves():
+	pass
 	
 func generate_legal_moves():
 	var moves = generate_possible_moves()

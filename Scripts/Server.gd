@@ -19,6 +19,7 @@ var team_index = 0
 # ui stuff
 onready var code_enter : LineEdit = get_tree().get_root().get_node("MainMenu/CodeEnter")
 onready var close_session_button : TextureButton = get_tree().get_root().get_node("MainMenu/Host/CloseSession")
+var text_popup_prefab = preload("res://Instances/TextPopup.tscn")
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -77,7 +78,9 @@ func request_close_session(): # If the host wants to close their session
 remote func on_session_close_request_success():
 	session_close()
 	reset_ui()
-	
+
+func request_disconnect_session():
+	rpc_id(1, "disconnect_session")
 # -----------------------------------------
 
 # -- LOCAL MANAGEMENT START --
@@ -85,7 +88,7 @@ remote func on_session_close_request_success():
 func create_session_scene():
 	scene = scene_prefab.instance()
 	scene.visible = false
-	board = scene.get_child(1) # Main position
+	board = scene.get_node("Main") # Main position
 	add_child(scene)
 	
 func set_ui_visibility(state : bool):
@@ -105,6 +108,17 @@ func reset_ui():
 	code_enter.editable = true
 	code_enter.text = "CODE"
 	close_session_button.visible = false
+	
+func create_text_popup(text):
+	var instance : TextPopup = text_popup_prefab.instance()
+	add_child(instance)	
+	instance.set_text(text)
+	
+	
+func _input(event):
+	if event.is_action_pressed("close"):
+		if has_session and enemy_id != -1:
+			request_disconnect_session()
 	
 
 # -----------------------------------------
@@ -131,9 +145,12 @@ remote func session_close(message : String = ""):
 	# delete previous board
 	scene.queue_free()
 	
+	if message != "":
+		Server.create_text_popup(message)
+	
 # -----------------------------------------
 
-# -- MAKING THE ACTUAL MOVES !!! ---
+# -- MAKING THE ACTUAL MOVES !!! --
 
 func upload_move(a,b,c,d):
 	if enemy_id == -1: # don't upload the move if we dont have an opponent!
@@ -146,6 +163,17 @@ remote func process_move(a,b,c,d):
 	var move = board.decipher_move_indexes(int(a),int(b),int(c),int(d))
 	board.update_session_info(move)
 	board.move(move)
+	board.checkmate_check()
 #	print(board.decipher_move_indexes(int(a),int(b),int(c),int(d)).taken_piece)
 # -----------------------------------------
 
+# -- PROCESSING SESSION UPDATES --
+
+func upload_piece_upgrade(piece_index, state):
+	if enemy_id == -1:
+		return
+		
+	rpc_id(enemy_id, "process_piece_upgrade", piece_index, state)
+
+remote func process_piece_upgrade(piece_index, state):
+	board.set_piece_upgraded_state(board.pieces[piece_index], state)

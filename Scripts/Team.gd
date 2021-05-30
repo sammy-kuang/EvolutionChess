@@ -13,9 +13,9 @@ var pieces = []
 var team_index = 0
 var in_check : bool = false
 
-func _init(team_number:int = 0, main_ref = null):
+func _init(team_number:int = 0, mp = null):
 	self.team_index = team_number
-	self.main_ref = main_ref
+	self.main_ref = mp
 	
 
 func get_king():
@@ -40,7 +40,7 @@ func get_random_piece():
 	var r = rng.randi_range(0, pieces.size())
 	return pieces[r]
 
-func get_upgradable_piece(iter : int = 1 ):
+func get_upgradable_piece(_iter : int = 1 ):
 	pass #todo kek
 
 func get_enemy_team_index():

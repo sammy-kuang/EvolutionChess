@@ -1,0 +1,25 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://Instances/TextPopup.gd" type="Script" id=1]
+
+[node name="TextPopup" type="CenterContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+layer = 5
+
+[node name="AcceptDialog" type="AcceptDialog" parent="CanvasLayer"]
+visible = true
+margin_left = 221.0
+margin_top = 371.0
+margin_right = 579.0
+margin_bottom = 429.0
+window_title = "Evolution Chess: Notification"
+dialog_text = "Placeholder Text! If you see this, please let me know!"
+
+[connection signal="confirmed" from="CanvasLayer/AcceptDialog" to="." method="_on_AcceptDialog_confirmed"]

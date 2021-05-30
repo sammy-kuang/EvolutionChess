@@ -5,11 +5,11 @@ var end_tile  = null
 var move_piece = null
 var taken_piece = null
 
-func _init(start_tile,end_tile,move_piece,taken_piece):
-	self.start_tile = start_tile
-	self.end_tile = end_tile
-	self.move_piece = move_piece
-	self.taken_piece = taken_piece
+func _init(st,et,mp,tp):
+	self.start_tile = st
+	self.end_tile = et
+	self.move_piece = mp
+	self.taken_piece = tp
 
 func compare_end_index(index : int):
 	return end_tile.index == index

@@ -5,6 +5,7 @@ class_name Main
 export var white_color : Color = Color.white
 export var black_color : Color = Color.black
 export var highlight_color : Color = Color.greenyellow
+export var check_color : Color = Color.red
 export var piece_offset : float = 0
 
 # tile related
@@ -29,9 +30,7 @@ func _ready():
 	create_teams()
 #	parse_fen_string("4k3/r7/8/8/8/8/8/R3K2R w KQkq - 0 1")
 	parse_fen_string("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
-	
-	var p = pieces[1]
-	var up = p.search_for_path_block(p.tile.get_upward())
+
 	
 func _process(_delta):
 	if get_viewport().get_mouse_position().x > 800+piece_offset:
@@ -106,8 +105,7 @@ func move(move : Move, is_simulation : bool = false): # REDO THIS FUNCTION
 	mp.tile = et
 	if !is_simulation:
 		mp.position = et.position
-	
-	last_move = move
+		last_move = move
 
 func upload_move_cipher(move : Move):
 	if Server.connected_global:
@@ -139,12 +137,20 @@ func undo_move(move : Move, was_simulation : bool = false):
 		tp.visible = true
 
 func update_session_info(move : Move): # yikes. getting a bit messy
+	var moved_team = teams[current_turn]
+	
 	move.move_piece.times_moved += 1 
 	move.move_piece.has_moved = true
+	current_turn = 1 if current_turn == 0 else 0
+	
+	# check! checking
+	if moved_team.has_enemy_in_check():
+		print("we have the enemy in check!")
+		# do tile highlighting now like leetchess lol
 	
 	
 func moved(move : Move):
-	var move_piece = move.move_piece
+	var _move_piece = move.move_piece
 	update_session_info(move) # Update the times moved, the has moved, etc
 	
 	# store the moves that need to be pushed to the network
