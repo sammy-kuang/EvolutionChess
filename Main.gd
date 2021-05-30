@@ -134,8 +134,6 @@ func switch_tile_pieces(a : Piece, b : Piece, tile_a, tile_b, is_simulation : bo
 	if !is_simulation:
 		a.position = tile_b.position
 		b.position = tile_a.position
-		
-	
 	
 	
 func undo_move(move : Move, was_simulation : bool = false):
@@ -158,7 +156,7 @@ func set_piece_upgraded_state(piece_index : int, state : bool):
 func upload_move_cipher(move : Move):
 	if Server.connected_global:
 		var cipher = cipher_move_to_indexes(move)
-		Server.upload_move(cipher[0], cipher[1], cipher[2], cipher[3])
+		Server.upload_move(cipher[0], cipher[1], cipher[2], cipher[3], move.swap)
 
 func cipher_move_to_indexes(move : Move):
 	var a = pieces.find(move.move_piece)
@@ -167,13 +165,13 @@ func cipher_move_to_indexes(move : Move):
 	var d = move.end_tile.index
 	return [a,b,c,d]
 
-func decipher_move_indexes(m, t, s, e):
+func decipher_move_indexes(m, t, s, e, swap):
 	var mp : Piece = pieces[m]
 	var tp : Piece = pieces[t] if t != -1 else null
 	var st = tiles[s]
 	var et = tiles[e]
 	
-	return Move.new(st,et,mp,tp)
+	return Move.new(st,et,mp,tp, swap)
 
 
 func update_session_info(move : Move): # yikes. getting a bit messy

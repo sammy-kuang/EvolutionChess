@@ -152,18 +152,17 @@ remote func session_close(message : String = ""):
 
 # -- MAKING THE ACTUAL MOVES !!! --
 
-func upload_move(a,b,c,d):
+func upload_move(a,b,c,d, swap):
 	if enemy_id == -1: # don't upload the move if we dont have an opponent!
 		return
 		
-	rpc_id(enemy_id, "process_move", a,b,c,d)
+	rpc_id(enemy_id, "process_move", a,b,c,d, swap)
 	
 
-remote func process_move(a,b,c,d):
-	var move = board.decipher_move_indexes(int(a),int(b),int(c),int(d))
+remote func process_move(a,b,c,d, swap):
+	var move = board.decipher_move_indexes(int(a),int(b),int(c),int(d), swap)
 	board.update_session_info(move)
 	board.move(move)
-	board.checkmate_check()
 #	print(board.decipher_move_indexes(int(a),int(b),int(c),int(d)).taken_piece)
 # -----------------------------------------
 
