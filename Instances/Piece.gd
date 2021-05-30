@@ -210,7 +210,9 @@ func generate_upgraded_moves():
 		4: # queen
 			pass
 		5: # king
-			pass
+			for p in get_team().alive_pieces():
+				var move = Move.new(tile, p.tile, self, p, true)
+				generation.append(move)
 		
 	return generation
 	

@@ -31,7 +31,7 @@ func _ready():
 	create_teams()
 #	parse_fen_string("4k3/r7/8/8/8/8/8/R3K2R w KQkq - 0 1")
 	parse_fen_string("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
-	set_piece_upgraded_state(29, true)
+	set_piece_upgraded_state(28, true)
 
 	
 func _process(_delta):
@@ -102,20 +102,54 @@ func move(move : Move, is_simulation : bool = false): # REDO THIS FUNCTION
 	var st  = move.start_tile
 	var et  = move.end_tile
 	
-	# taken
-	if tp != null:
-		tp.visible = false
-		tp.tile.piece = null # review that this is actually needed
-		tp.tile = null
+	if move.swap:
+		switch_tile_pieces(mp, tp, st, et, is_simulation)	
+	else:
+		# taken
+		if tp != null:
+			tp.visible = false
+			tp.tile.piece = null # review that this is actually needed
+			tp.tile = null
+		
+		# start
+		st.piece = null
+			
+		# end
+		et.piece = mp
+		mp.tile = et
+		
+		if !is_simulation:
+			mp.position = et.position
+		
+		
+	last_move = move
 	
-	# start
-	st.piece = null
-	# end
-	et.piece = mp
-	mp.tile = et
+func switch_tile_pieces(a : Piece, b : Piece, tile_a, tile_b, is_simulation : bool = false):
+	a.tile = tile_b
+	tile_b.piece = a
+	
+	b.tile = tile_a
+	tile_a.piece = b
+	
 	if !is_simulation:
-		mp.position = et.position
-		last_move = move
+		a.position = tile_b.position
+		b.position = tile_a.position
+		
+	
+	
+	
+func undo_move(move : Move, was_simulation : bool = false):
+	if move.swap:
+		move(Move.new(move.end_tile, move.start_tile, move.move_piece, move.taken_piece, move.swap), was_simulation)
+		return 
+		
+	move(Move.new(move.end_tile, move.start_tile, move.move_piece, null), was_simulation)
+	var tp = move.taken_piece
+	if tp != null:
+		var et = move.end_tile
+		et.piece = tp
+		tp.tile = et
+		tp.visible = true
 
 
 func set_piece_upgraded_state(piece_index : int, state : bool):
@@ -140,15 +174,7 @@ func decipher_move_indexes(m, t, s, e):
 	var et = tiles[e]
 	
 	return Move.new(st,et,mp,tp)
-	
-func undo_move(move : Move, was_simulation : bool = false):
-	move(Move.new(move.end_tile, move.start_tile, move.move_piece, null), was_simulation)
-	var tp = move.taken_piece
-	if tp != null:
-		var et = move.end_tile
-		et.piece = tp
-		tp.tile = et
-		tp.visible = true
+
 
 func update_session_info(move : Move): # yikes. getting a bit messy
 	var moved_team = teams[current_turn]
@@ -178,6 +204,7 @@ func moved(move : Move):
 	if is_castle != null:
 		move(is_castle)
 		network_updates.append(is_castle) # add the castle move to the network queue
+		
 		
 	# upload the queued to the network
 	for move in network_updates:
