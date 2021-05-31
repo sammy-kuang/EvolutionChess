@@ -32,6 +32,11 @@ func _ready():
 #	parse_fen_string("4k3/r7/8/8/8/8/8/R3K2R w KQkq - 0 1")
 	parse_fen_string("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
 	set_piece_upgraded_state(28, true)
+	
+	for i in range(pieces.size()):
+		var p : Piece = pieces[i]
+		if p.piece_type != 0:
+			set_piece_upgraded_state(i, true)
 
 	
 func _process(_delta):

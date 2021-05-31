@@ -2,7 +2,7 @@ extends Node
 
 # Declare member variables here. Examples:
 var PORT = 2133
-var DEFAULT_IP = "127.0.0.1"
+var DEFAULT_IP = "139.177.197.19"
 var network = NetworkedMultiplayerENet.new()
 var connected_global : bool = false
 

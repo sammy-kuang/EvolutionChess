@@ -41,7 +41,9 @@ func get_random_piece():
 	return pieces[r]
 
 func get_upgradable_piece(_iter : int = 1 ):
-	pass #todo kek
+	for piece in alive_pieces():
+		if piece.piece_type != 0:
+			return piece
 
 func get_enemy_team_index():
 	return 1 if team_index == 0 else 0	
