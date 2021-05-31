@@ -25,6 +25,9 @@ var pieces = []
 var teams = []
 var current_turn = 0
 
+# game over
+var game_over : bool = false
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	generate_board()
@@ -48,6 +51,9 @@ func _process(_delta):
 	
 		
 func _input(event):
+	if game_over: # don't let anymore inputs on the game if the game has ended
+		return
+	
 	var mouse_event : bool = event.is_action_pressed("click") or event.is_action_pressed("right_click")
 	
 	if mouse_event:
@@ -128,6 +134,10 @@ func move(move : Move, is_simulation : bool = false): # REDO THIS FUNCTION
 		
 		
 	last_move = move
+	
+func set_game_over(state, reason=""):
+	game_over = state
+	Server.create_text_popup(reason)
 	
 func switch_tile_pieces(a : Piece, b : Piece, tile_a, tile_b, is_simulation : bool = false):
 	a.tile = tile_b

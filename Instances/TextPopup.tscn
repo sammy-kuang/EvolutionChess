@@ -15,11 +15,18 @@ layer = 5
 
 [node name="AcceptDialog" type="AcceptDialog" parent="CanvasLayer"]
 visible = true
-margin_left = 221.0
-margin_top = 371.0
-margin_right = 579.0
-margin_bottom = 429.0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -179.0
+margin_top = -29.0
+margin_right = 179.0
+margin_bottom = 29.0
 window_title = "Evolution Chess: Notification"
 dialog_text = "Placeholder Text! If you see this, please let me know!"
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [connection signal="confirmed" from="CanvasLayer/AcceptDialog" to="." method="_on_AcceptDialog_confirmed"]

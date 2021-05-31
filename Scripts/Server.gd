@@ -11,7 +11,7 @@ var scene_prefab = preload("res://Scene.tscn")
 
 # session specifics
 var has_session = false
-var scene = null
+var scene : ChessScene = null
 var board : Main = null # Main type
 var enemy_id : int = -1
 var team_index = 0
@@ -130,9 +130,10 @@ remote func session_start(id : int):
 	set_scene_visibility(true)
 	set_ui_visibility(false)
 	has_session = true
+	scene.started = true
 	
 	if team_index == 1: # are we black team?
-		board.flip_board()
+		scene.flip()
 	
 remote func session_close(message : String = ""):
 	set_scene_visibility(false)
