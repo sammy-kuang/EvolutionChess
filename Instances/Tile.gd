@@ -25,6 +25,9 @@ func _ready():
 		get_label().add_color_override("font_color", Color.white)
 		
 func on_click(mouse_index : int = 0):
+	
+	print("on click received on tile: " + str(index))
+	
 	# session
 	if Server.has_session: # we are in a multiplayer game!
 		if(main_ref.mouse_piece == null and piece != null):

@@ -13,6 +13,7 @@ export var piece_offset : float = 0
 var tile_prefab = preload("res://Instances/Tile.tscn")
 var tiles = []
 var mouse_tile = null
+var border_width : int = 0
 
 # piece related
 var piece_prefab = preload("res://Instances/Piece.tscn")
@@ -28,6 +29,7 @@ var current_turn = 0
 # game over
 var game_over : bool = false
 
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	generate_board()
@@ -36,6 +38,8 @@ func _ready():
 	parse_fen_string("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
 	set_piece_upgraded_state(28, true)
 	
+	print(border_width)
+	
 	for i in range(pieces.size()):
 		var p : Piece = pieces[i]
 		if p.piece_type != 0:
@@ -43,7 +47,8 @@ func _ready():
 
 	
 func _process(_delta):
-	if get_viewport().get_mouse_position().x > 800+piece_offset:
+	var mouse_pos_x = get_viewport().get_mouse_position().x
+	if mouse_pos_x < border_width or mouse_pos_x > 800+border_width+piece_offset:
 		mouse_tile = null
 		
 	if mouse_piece != null:
@@ -68,7 +73,7 @@ func pickup(piece : Piece, mouse_index : int = 0):
 	# getting
 	var m = piece.generate_possible_moves() if mouse_index == 0 else piece.generate_upgraded_moves()
 	var c = highlight_color if mouse_index == 0 else upgraded_move_color
-	print(mouse_index)
+#	print(mouse_index)
 	# setting
 	mouse_piece = piece
 	mouse_piece.possible_moves = mouse_piece.generate_legal_moves(m)
@@ -200,6 +205,10 @@ func update_session_info(move : Move): # yikes. getting a bit messy
 	if moved_team.has_enemy_in_check():
 		print("we have the enemy in check!")
 		# do tile highlighting now like leetchess lol
+		
+#	if Server.has_session and Server.enemy_id != -1 and Server.team_index == 0: # need an opponent, host has timer dominance
+#		Server.upload_updated_timer()
+		
 	
 	
 func moved(move : Move):
@@ -291,6 +300,9 @@ func generate_board():
 			instance.white_tile = is_light
 			add_child(instance)
 			tiles.append(instance)
+	
+	# set the border width	
+	border_width = (get_viewport().get_visible_rect().size.x-800)/2
 			
 			
 func position_to_tile(position : Vector2):

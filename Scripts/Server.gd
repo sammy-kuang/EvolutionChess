@@ -2,7 +2,7 @@ extends Node
 
 # Declare member variables here. Examples:
 var PORT = 2133
-var DEFAULT_IP = "139.177.197.19"
+var DEFAULT_IP = "45.79.10.54"
 var network = NetworkedMultiplayerENet.new()
 var connected_global : bool = false
 
@@ -33,13 +33,24 @@ func connect_to_server():
 	
 	network.connect("connection_failed", self, "on_connected_failed")
 	network.connect("connection_succeeded", self, "on_connection_succeeded")
+	network.connect("server_disconnected", self, "on_connection_disconnected")
 	
 func on_connection_failed():
 	print("Failed to connect to global server...")
+	create_text_popup("Can't seem to connect to the global server. Are you offline?")
 
 func on_connection_succeeded():
 	connected_global = true
 	print("Connection successful to global server!")
+	
+func on_connection_disconnected():
+	connected_global = false
+	if has_session:
+		session_close("Lost connection to global server")
+	else:
+		create_text_popup("Lost connection to the global server. Are you offline?")
+	print("Lost our connection to the global server!")
+	
 
 # -----------------------------------------
 
@@ -114,6 +125,8 @@ func create_text_popup(text):
 	add_child(instance)	
 	instance.set_text(text)
 	
+remote func receive_server_popup(text):
+	create_text_popup(text)
 	
 func _input(event):
 	if event.is_action_pressed("close"):
@@ -177,3 +190,10 @@ func upload_piece_upgrade(piece_index, state):
 
 remote func process_piece_upgrade(piece_index, state):
 	board.set_piece_upgraded_state(board.pieces[piece_index], state)
+	
+func upload_updated_timer():
+	rpc_id(enemy_id, "receive_updated_timer", scene.white_time, scene.black_time)
+	
+remote func receive_updated_timer(white_time, black_time):
+	scene.white_time = white_time
+	scene.black_time = black_time

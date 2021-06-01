@@ -179,6 +179,13 @@ func generate_possible_moves(): # this is gonna be messy...
 				elif !t.has_piece():
 					generation.append(Move.new(tile, t, self, null))
 		
+	# upgraded queen limitations !
+	var st = tile.get_surrounding_tiles()
+	
+	for t in st:
+		if t.has_enemy_piece(team_index):
+			if t.piece.piece_type == 4 and t.piece.upgraded: # surroundings has an upgraded queen, can't move!
+				generation.clear()
 	
 	return generation
 	
@@ -237,14 +244,6 @@ func generate_legal_moves(moves):
 			legal_moves.append(move)
 		main_ref.undo_move(move, true) # un-simulate it lol
 	legal_moves.append_array(add_castles(enemy_team))
-	
-	# upgraded queen limitations !
-	var st = tile.get_surrounding_tiles()
-	
-	for t in st:
-		if t.has_enemy_piece(team_index):
-			if t.piece.piece_type == 4 and t.piece.upgraded: # surroundings has an upgraded queen, can't move!
-				legal_moves.clear()
 			
 	legal_moves.append(Move.new(tile, tile, self, null)) # always allow the user to put the piece back	
 	
