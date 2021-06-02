@@ -10,8 +10,10 @@ var TEAM = {
 
 # pieces and team specific
 var pieces = []
+var upgraded_pieces = []
 var team_index = 0
 var in_check : bool = false
+var times_moved = 0
 
 func _init(team_number:int = 0, mp = null):
 	self.team_index = team_number
@@ -40,9 +42,11 @@ func get_random_piece():
 	var r = rng.randi_range(0, pieces.size())
 	return pieces[r]
 
-func get_upgradable_piece(_iter : int = 1 ):
-	for piece in alive_pieces():
-		if piece.piece_type != 0:
+func get_upgradable_piece():
+	var arr = alive_pieces()
+	arr.shuffle()
+	for piece in arr:
+		if piece.piece_type != 0 and !piece.upgraded:
 			return piece
 
 func get_enemy_team_index():

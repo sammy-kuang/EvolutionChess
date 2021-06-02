@@ -36,15 +36,6 @@ func _ready():
 	create_teams()
 #	parse_fen_string("4k3/r7/8/8/8/8/8/R3K2R w KQkq - 0 1")
 	parse_fen_string("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
-	set_piece_upgraded_state(28, true)
-	
-	print(border_width)
-	
-	for i in range(pieces.size()):
-		var p : Piece = pieces[i]
-		if p.piece_type != 0:
-			set_piece_upgraded_state(i, true)
-
 	
 func _process(_delta):
 	var mouse_pos_x = get_viewport().get_mouse_position().x
@@ -170,8 +161,18 @@ func undo_move(move : Move, was_simulation : bool = false):
 		tp.visible = true
 
 
+func upgrade_random_piece(team_index):
+	var team : Team = teams[team_index]
+	var upgradeable_piece = team.get_upgradable_piece()
+	
+	if upgradeable_piece != null:
+		var index = pieces.find(upgradeable_piece)
+		set_piece_upgraded_state(index, true)
+
 func set_piece_upgraded_state(piece_index : int, state : bool):
 	pieces[piece_index].set_upgraded_state(state)
+	if Server.connected_global:
+		Server.upload_piece_upgrade(piece_index, state)
 
 func upload_move_cipher(move : Move):
 	if Server.connected_global:
@@ -196,6 +197,11 @@ func decipher_move_indexes(m, t, s, e, swap):
 
 func update_session_info(move : Move): # yikes. getting a bit messy
 	var moved_team = teams[current_turn]
+	moved_team.times_moved += 1
+	
+	if moved_team.times_moved % 4 == 0:
+		print("its time to upgrade a piece for team : " + str(current_turn) + "")
+		upgrade_random_piece(current_turn)
 	
 	move.move_piece.times_moved += 1 
 	move.move_piece.has_moved = true
@@ -206,8 +212,8 @@ func update_session_info(move : Move): # yikes. getting a bit messy
 		print("we have the enemy in check!")
 		# do tile highlighting now like leetchess lol
 		
-#	if Server.has_session and Server.enemy_id != -1 and Server.team_index == 0: # need an opponent, host has timer dominance
-#		Server.upload_updated_timer()
+	if Server.has_session and Server.enemy_id != -1 and Server.team_index == 0: # need an opponent, host has timer dominance
+		Server.upload_updated_timer()
 		
 	
 	
@@ -263,7 +269,7 @@ func parse_fen_string(input : String):
 	# rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 	var fen = input.split(" ")[0]
 	var lines = fen.split("/")
-	var piece_types = PieceType.new().PIECES
+	var _piece_types = PieceType.new().PIECES
 	var ctoint = { "p" : 0, "r" : 1, "n" : 2, "b" : 3,  "q" : 4, "k" : 5}
 	
 	for i in range(lines.size()):
@@ -302,7 +308,7 @@ func generate_board():
 			tiles.append(instance)
 	
 	# set the border width	
-	border_width = (get_viewport().get_visible_rect().size.x-800)/2
+	border_width = int((get_viewport().get_visible_rect().size.x-800)/2)
 			
 			
 func position_to_tile(position : Vector2):

@@ -186,7 +186,16 @@ func generate_possible_moves(): # this is gonna be messy...
 		if t.has_enemy_piece(team_index):
 			if t.piece.piece_type == 4 and t.piece.upgraded: # surroundings has an upgraded queen, can't move!
 				generation.clear()
-	
+				
+	# upgraded rook limitations
+	for m in generation:
+		if piece_type == 1:
+			if m.taken_piece != null:
+				generation.erase(m)
+		
+		if m.taken_piece != null:
+			if m.taken_piece.piece_type == 1 and m.taken_piece.upgraded:
+				generation.erase(m)
 	return generation
 	
 func generate_upgraded_moves():
@@ -234,6 +243,13 @@ func generate_upgraded_moves():
 func set_upgraded_state(state : bool):
 	upgraded = state
 	texture = default_texture if !state else upgraded_texture
+	
+	var t : Team = get_team()
+	if state:
+		t.upgraded_pieces.append(self)
+	else:
+		if t.upgraded_pieces.has(self):
+			t.upgraded_pieces.erase(self)
 	
 func generate_legal_moves(moves):
 	var legal_moves = []
@@ -319,7 +335,7 @@ func set_tile(new_tile):
 	tile = new_tile
 	position = tile.position
 	
-func get_team():
+func get_team() -> Team:
 	return main_ref.teams[team_index]
 
 
