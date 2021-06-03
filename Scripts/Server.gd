@@ -166,30 +166,32 @@ remote func session_close(message : String = ""):
 
 # -- MAKING THE ACTUAL MOVES !!! --
 
-func upload_move(a,b,c,d, swap):
+func upload_move(a,b,c,d, swap, iter : int = 0):
 	if enemy_id == -1: # don't upload the move if we dont have an opponent!
 		return
 		
-	rpc_id(enemy_id, "process_move", a,b,c,d, swap)
+	rpc_id(enemy_id, "process_move", a,b,c,d, swap, bool(iter==0))
 	
 
-remote func process_move(a,b,c,d, swap):
+remote func process_move(a,b,c,d, swap, update : bool = true):
 	var move = board.decipher_move_indexes(int(a),int(b),int(c),int(d), swap)
-	board.update_session_info(move)
+	
+	if update:
+		board.update_session_info(move)
+		
 	board.move(move)
-#	print(board.decipher_move_indexes(int(a),int(b),int(c),int(d)).taken_piece)
 # -----------------------------------------
 
 # -- PROCESSING SESSION UPDATES --
 
-func upload_piece_upgrade(piece_index, state):
+func upload_piece_upgrade(piece_index : int, state : bool):
 	if enemy_id == -1:
 		return
 		
 	rpc_id(enemy_id, "process_piece_upgrade", piece_index, state)
 
-remote func process_piece_upgrade(piece_index, state):
-	board.set_piece_upgraded_state(board.pieces[piece_index], state)
+remote func process_piece_upgrade(piece_index : int, state : bool):
+	board.set_piece_upgraded_state(piece_index, state)
 	
 func upload_updated_timer():
 	rpc_id(enemy_id, "receive_updated_timer", scene.white_time, scene.black_time)

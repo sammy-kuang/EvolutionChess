@@ -14,6 +14,7 @@ var upgraded_pieces = []
 var team_index = 0
 var in_check : bool = false
 var times_moved = 0
+var king = null
 
 func _init(team_number:int = 0, mp = null):
 	self.team_index = team_number
@@ -21,8 +22,12 @@ func _init(team_number:int = 0, mp = null):
 	
 
 func get_king():
-	for piece in pieces:
+	if king != null:
+		return king
+		
+	for piece in alive_pieces():
 		if piece.piece_type == 5: # 5 represents king
+			king = piece
 			return piece
 	push_error("King is null!!!")
 	return null # THIS SHOULD NOT OCCUR
@@ -44,6 +49,7 @@ func get_random_piece():
 
 func get_upgradable_piece():
 	var arr = alive_pieces()
+	randomize()
 	arr.shuffle()
 	for piece in arr:
 		if piece.piece_type != 0 and !piece.upgraded:

@@ -36,6 +36,7 @@ func _ready():
 	create_teams()
 #	parse_fen_string("4k3/r7/8/8/8/8/8/R3K2R w KQkq - 0 1")
 	parse_fen_string("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+#	set_piece_upgraded_state(27, true)
 	
 func _process(_delta):
 	var mouse_pos_x = get_viewport().get_mouse_position().x
@@ -174,17 +175,18 @@ func set_piece_upgraded_state(piece_index : int, state : bool):
 	if Server.connected_global:
 		Server.upload_piece_upgrade(piece_index, state)
 
-func upload_move_cipher(move : Move):
+func upload_move_cipher(move : Move, _iter : int = 0):
 	if Server.connected_global:
 		var cipher = cipher_move_to_indexes(move)
-		Server.upload_move(cipher[0], cipher[1], cipher[2], cipher[3], move.swap)
+		Server.upload_move(cipher[0], cipher[1], cipher[2], cipher[3], move.swap, _iter)
 
 func cipher_move_to_indexes(move : Move):
 	var a = pieces.find(move.move_piece)
 	var b = pieces.find(move.taken_piece)
 	var c = move.start_tile.index
 	var d = move.end_tile.index
-	return [a,b,c,d]
+	var e = move.swap
+	return [a,b,c,d,e]
 
 func decipher_move_indexes(m, t, s, e, swap):
 	var mp : Piece = pieces[m]
@@ -196,12 +198,9 @@ func decipher_move_indexes(m, t, s, e, swap):
 
 
 func update_session_info(move : Move): # yikes. getting a bit messy
-	var moved_team = teams[current_turn]
+	var moved_team : Team = teams[current_turn]
 	moved_team.times_moved += 1
-	
-	if moved_team.times_moved % 4 == 0:
-		print("its time to upgrade a piece for team : " + str(current_turn) + "")
-		upgrade_random_piece(current_turn)
+
 	
 	move.move_piece.times_moved += 1 
 	move.move_piece.has_moved = true
@@ -209,17 +208,24 @@ func update_session_info(move : Move): # yikes. getting a bit messy
 	
 	# check! checking
 	if moved_team.has_enemy_in_check():
-		print("we have the enemy in check!")
-		# do tile highlighting now like leetchess lol
+#		print("we have the enemy in check!")
+		teams[current_turn].get_king().tile.set_highlight(true, check_color)
+	else:
+		teams[0].get_king().tile.set_highlight(false)
+		teams[1].get_king().tile.set_highlight(false)
 		
 	if Server.has_session and Server.enemy_id != -1 and Server.team_index == 0: # need an opponent, host has timer dominance
 		Server.upload_updated_timer()
+		print("Synced timer")
 		
 	
 	
 func moved(move : Move):
 	var _move_piece = move.move_piece
 	update_session_info(move) # Update the times moved, the has moved, etc
+	
+	if _move_piece.get_team().times_moved % 4 == 0:
+		upgrade_random_piece(_move_piece.team_index)
 	
 	# store the moves that need to be pushed to the network
 	var network_updates = []
@@ -235,8 +241,9 @@ func moved(move : Move):
 		
 		
 	# upload the queued to the network
-	for move in network_updates:
-		upload_move_cipher(move)
+	for i in range(network_updates.size()):
+		var m = network_updates[i]
+		upload_move_cipher(m, i)
 
 func castle_check(move : Move):
 	var mp = move.move_piece
