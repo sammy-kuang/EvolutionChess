@@ -226,11 +226,20 @@ func update_session_info(move : Move): # yikes. getting a bit messy
 	move.move_piece.has_moved = true
 	current_turn = 1 if current_turn == 0 else 0
 	
-	print("called update session info")
+#	print("called update session info. total turns: " + str(game_turns) + ", current turn: " + str(current_turn))
+#	print(moved_team.team_index)
 	
+	if move.taken_piece != null:
+		if move.taken_piece.upgraded:
+			move.taken_piece.get_team().upgraded_pieces.erase(move.taken_piece)
+			
 	# check! checking
+#	print("Moved team: " + str(moved_team.team_index))
+#	print("Unmoved team: " + str(moved_team.get_enemy_team().team_index))
+	print(sum_piece_position_indices())
+	
 	if moved_team.has_enemy_in_check():
-#		print("we have the enemy in check!")
+		print("we have the enemy in check!")
 		teams[current_turn].get_king().tile.set_highlight(true, check_color)
 	else:
 		teams[0].get_king().tile.set_highlight(false)
@@ -257,7 +266,6 @@ func update_session_info(move : Move): # yikes. getting a bit messy
 	
 func moved(move : Move):
 	var _move_piece = move.move_piece
-	update_session_info(move) # Update the times moved, the has moved, etc
 	
 	# store the moves that need to be pushed to the network
 	var network_updates = []
@@ -276,6 +284,9 @@ func moved(move : Move):
 	for i in range(network_updates.size()):
 		var m = network_updates[i]
 		upload_move_cipher(m, i)
+		
+	update_session_info(move) # Update the times moved, the has moved, etc
+	
 
 func castle_check(move : Move):
 	var mp = move.move_piece
@@ -366,6 +377,12 @@ func get_vector_directions(vector : Vector2):
 
 func get_tiles():
 	return tiles
+	
+func sum_piece_position_indices():
+	var r = 0
+	for piece in pieces:
+		r += piece.tile.index
+	return r
 	
 func flip_board():
 	var camera : Camera2D = get_parent().get_node("Scene Camera")

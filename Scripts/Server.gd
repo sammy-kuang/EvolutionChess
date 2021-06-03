@@ -178,10 +178,11 @@ func upload_move(a,b,c,d, swap, iter : int = 0):
 remote func process_move(a,b,c,d, swap, update : bool = true):
 	var move = board.decipher_move_indexes(int(a),int(b),int(c),int(d), swap)
 	
+	board.move(move)
+	
 	if update:
 		board.update_session_info(move)
-		
-	board.move(move)
+
 # -----------------------------------------
 
 # -- PROCESSING SESSION UPDATES --
