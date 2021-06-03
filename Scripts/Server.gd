@@ -21,6 +21,8 @@ onready var code_enter : LineEdit = get_tree().get_root().get_node("MainMenu/Cod
 onready var close_session_button : TextureButton = get_tree().get_root().get_node("MainMenu/Host/CloseSession")
 var text_popup_prefab = preload("res://Instances/TextPopup.tscn")
 
+var VERSION_CODE = "JABNEFYHHDWA"
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	connect_to_server()
@@ -199,3 +201,11 @@ func upload_updated_timer():
 remote func receive_updated_timer(white_time, black_time):
 	scene.white_time = white_time
 	scene.black_time = black_time
+	
+func set_game_over(state, message, upload : bool = false):
+	if enemy_id != -1:
+		board.set_game_over(state, message)
+		scene.game_over = state
+		
+		if upload:
+			rpc_id(enemy_id, "set_game_over", state, message)

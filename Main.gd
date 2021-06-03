@@ -26,8 +26,9 @@ var pieces = []
 var teams = []
 var current_turn = 0
 
-# game over
+# game data
 var game_over : bool = false
+var game_turns = 0
 
 
 # Called when the node enters the scene tree for the first time.
@@ -36,7 +37,6 @@ func _ready():
 	create_teams()
 #	parse_fen_string("4k3/r7/8/8/8/8/8/R3K2R w KQkq - 0 1")
 	parse_fen_string("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
-#	set_piece_upgraded_state(27, true)
 	
 func _process(_delta):
 	var mouse_pos_x = get_viewport().get_mouse_position().x
@@ -147,7 +147,28 @@ func switch_tile_pieces(a : Piece, b : Piece, tile_a, tile_b, is_simulation : bo
 		a.position = tile_b.position
 		b.position = tile_a.position
 	
+func is_stalemate() -> bool:
+	var t = teams[0]
+	var o = teams[1]
 	
+	if !t.can_mate() and !o.can_mate():  # assume stalemate?
+		return true
+	
+	for team in teams:
+		if team.alive_pieces().size() <= 6:
+			var amount = 0
+			for piece in team.alive_pieces():
+				var m = piece.generate_possible_moves()
+				if piece.upgraded:
+					m.append_array(piece.generate_upgraded_moves())
+				var l = piece.generate_legal_moves(m).size()-1 # subtract one since we always technically put the piece back
+				amount += l
+			if amount == 0:
+				return true
+	
+	return false
+			
+
 func undo_move(move : Move, was_simulation : bool = false):
 	if move.swap:
 		move(Move.new(move.end_tile, move.start_tile, move.move_piece, move.taken_piece, move.swap), was_simulation)
@@ -168,11 +189,11 @@ func upgrade_random_piece(team_index):
 	
 	if upgradeable_piece != null:
 		var index = pieces.find(upgradeable_piece)
-		set_piece_upgraded_state(index, true)
+		set_piece_upgraded_state(index, true, false)
 
-func set_piece_upgraded_state(piece_index : int, state : bool):
+func set_piece_upgraded_state(piece_index : int, state : bool, receiving : bool = true):
 	pieces[piece_index].set_upgraded_state(state)
-	if Server.connected_global:
+	if Server.connected_global and !receiving:
 		Server.upload_piece_upgrade(piece_index, state)
 
 func upload_move_cipher(move : Move, _iter : int = 0):
@@ -199,12 +220,13 @@ func decipher_move_indexes(m, t, s, e, swap):
 
 func update_session_info(move : Move): # yikes. getting a bit messy
 	var moved_team : Team = teams[current_turn]
-	moved_team.times_moved += 1
-
+	game_turns += 1
 	
 	move.move_piece.times_moved += 1 
 	move.move_piece.has_moved = true
 	current_turn = 1 if current_turn == 0 else 0
+	
+	print("called update session info")
 	
 	# check! checking
 	if moved_team.has_enemy_in_check():
@@ -216,16 +238,26 @@ func update_session_info(move : Move): # yikes. getting a bit messy
 		
 	if Server.has_session and Server.enemy_id != -1 and Server.team_index == 0: # need an opponent, host has timer dominance
 		Server.upload_updated_timer()
-		print("Synced timer")
+#		print("Synced timer")
+	
+	if game_turns % 8 == 0 and Server.team_index == 0:
+		upgrade_random_piece(0)
+		upgrade_random_piece(1)
+
+	for i in range(2):
+		var t : Team = teams[i]
+		for piece in t.upgraded_pieces:
+			if piece.deupgrade_on == game_turns:
+				set_piece_upgraded_state(pieces.find(piece), false, true)
+				
+	if(is_stalemate()):
+		Server.create_text_popup("Stalemate detected. owen plz screenshot!")
 		
 	
 	
 func moved(move : Move):
 	var _move_piece = move.move_piece
 	update_session_info(move) # Update the times moved, the has moved, etc
-	
-	if _move_piece.get_team().times_moved % 4 == 0:
-		upgrade_random_piece(_move_piece.team_index)
 	
 	# store the moves that need to be pushed to the network
 	var network_updates = []

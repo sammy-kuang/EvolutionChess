@@ -13,7 +13,7 @@ var pieces = []
 var upgraded_pieces = []
 var team_index = 0
 var in_check : bool = false
-var times_moved = 0
+var completed_turns = 0
 var king = null
 
 func _init(team_number:int = 0, mp = null):
@@ -84,6 +84,15 @@ func is_attacking_tile(tile) -> bool:
 			if move.end_tile == tile:
 				return true
 	return false
+	
+func can_mate():
+	var a = alive_pieces()
+	if a.size() == 2:
+		for p in a:
+			if p.piece_type == 2 or p.piece_type == 3:
+				return false
+	else:
+		return a.size() != 1
 
 func alive_pieces():
 	var ret = []
@@ -94,5 +103,9 @@ func alive_pieces():
 
 func generate_moves():
 	for piece in alive_pieces():
-		var dat = piece.generate_possible_moves()
-		return dat
+		var moves = piece.generate_possible_moves()
+		
+		if piece.upgraded:
+			moves.append_array(piece.generate_upgraded_moves())
+		
+		return moves

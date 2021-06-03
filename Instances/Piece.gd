@@ -22,6 +22,7 @@ var unique_data = []
 
 # upgraded concept
 var upgraded : bool = false
+var deupgrade_on = 0
 var default_texture : Resource = null
 var upgraded_texture : Resource = null
 
@@ -247,6 +248,8 @@ func set_upgraded_state(state : bool):
 	var t : Team = get_team()
 	if state:
 		t.upgraded_pieces.append(self)
+		var append_amount = 4 if team_index == 0 else 6
+		deupgrade_on = main_ref.game_turns + append_amount
 	else:
 		if t.upgraded_pieces.has(self):
 			t.upgraded_pieces.erase(self)
