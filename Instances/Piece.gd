@@ -51,6 +51,8 @@ func search_for_path_block(input_array, pierce_amount : int = 0):
 		if piece == null:
 			ret_data.append(Move.new(self.tile, t, self, null))
 		else:
+			if piece.visible == false:
+				break
 			if piece.team_index == team_index:
 				break
 			else:
@@ -197,6 +199,7 @@ func generate_possible_moves(): # this is gonna be messy...
 		if m.taken_piece != null:
 			if m.taken_piece.piece_type == 1 and m.taken_piece.upgraded:
 				generation.erase(m)
+	
 	return generation
 	
 func generate_upgraded_moves():
@@ -238,17 +241,7 @@ func generate_upgraded_moves():
 			for p in get_team().alive_pieces():
 				var move = Move.new(tile, p.tile, self, p, true)
 				generation.append(move)
-				
-	# upgraded rook limitations
-	for m in generation:
-		if piece_type == 1 and upgraded:
-			if m.taken_piece != null:
-				generation.erase(m)
-		
-		if m.taken_piece != null:
-			if m.taken_piece.piece_type == 1 and m.taken_piece.upgraded:
-				generation.erase(m)
-		
+
 	return generation
 	
 func set_upgraded_state(state : bool):
