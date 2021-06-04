@@ -381,7 +381,8 @@ func get_tiles():
 func sum_piece_position_indices():
 	var r = 0
 	for piece in pieces:
-		r += piece.tile.index
+		if piece.visible:
+			r += piece.tile.index
 	return r
 	
 func flip_board():

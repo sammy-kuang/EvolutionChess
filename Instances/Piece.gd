@@ -99,6 +99,7 @@ func generate_possible_moves(): # this is gonna be messy...
 	var generation = []
 	match piece_type:
 		0: # pawn ( i should probably try cleaning up this code ) 
+			var start_y = 1 if team_index == 0 else 6 # where does the team's pawns start?			
 			var y = 1 if team_index == 0 else -1
 			var vec = Vector2(tile.tile_pos.x, tile.tile_pos.y + y)
 			var t = main_ref.position_to_tile(vec)
@@ -107,8 +108,8 @@ func generate_possible_moves(): # this is gonna be messy...
 				if t.piece == null:
 					generation.append(Move.new(tile, t, self, null))
 					
-					if up != null:
-						if !has_moved and !up.has_piece():
+					if up != null and tile.tile_pos.y == start_y:
+						if ((!has_moved) or (times_moved <= 0)) and !up.has_piece():
 							generation.append(Move.new(tile, up, self, null))		
 				
 			var left = main_ref.position_to_tile(Vector2(tile.tile_pos.x-1,tile.tile_pos.y+y)) # left
@@ -123,7 +124,6 @@ func generate_possible_moves(): # this is gonna be messy...
 					generation.append(Move.new(tile, right, self, right.piece))
 					
 			# en passant
-			var start_y = 1 if team_index == 0 else 6 # where does the team's pawns start?
 			var fifth_rank = start_y+(y*3) # get the current team's fifth rank
 			
 			if tile.tile_pos.y == fifth_rank: # capturing pawn must be on its fifth rank
@@ -190,7 +190,7 @@ func generate_possible_moves(): # this is gonna be messy...
 				
 	# upgraded rook limitations
 	for m in generation:
-		if piece_type == 1:
+		if piece_type == 1 and upgraded:
 			if m.taken_piece != null:
 				generation.erase(m)
 		
@@ -238,6 +238,16 @@ func generate_upgraded_moves():
 			for p in get_team().alive_pieces():
 				var move = Move.new(tile, p.tile, self, p, true)
 				generation.append(move)
+				
+	# upgraded rook limitations
+	for m in generation:
+		if piece_type == 1 and upgraded:
+			if m.taken_piece != null:
+				generation.erase(m)
+		
+		if m.taken_piece != null:
+			if m.taken_piece.piece_type == 1 and m.taken_piece.upgraded:
+				generation.erase(m)
 		
 	return generation
 	
