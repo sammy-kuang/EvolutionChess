@@ -194,11 +194,11 @@ func generate_possible_moves(): # this is gonna be messy...
 	for m in generation:
 		if piece_type == 1 and upgraded:
 			if m.taken_piece != null:
-				generation.erase(m)
+				generation = Functions.array_safe_erase(generation, m)
 		
 		if m.taken_piece != null:
 			if m.taken_piece.piece_type == 1 and m.taken_piece.upgraded:
-				generation.erase(m)
+				generation = Functions.array_safe_erase(generation, m)
 	
 	return generation
 	
@@ -234,7 +234,7 @@ func generate_upgraded_moves():
 			for move in data: # dont let the upgraded bishop pierce to the king!
 				if move.taken_piece != null:
 					if move.taken_piece.piece_type == 5: # 5 is king?
-						generation.erase(move)
+						generation = Functions.array_safe_erase(generation, move)
 		4: # queen
 			pass
 		5: # king
@@ -255,7 +255,7 @@ func set_upgraded_state(state : bool):
 		deupgrade_on = main_ref.game_turns + append_amount
 	else:
 		if t.upgraded_pieces.has(self):
-			t.upgraded_pieces.erase(self)
+			t.upgraded_pieces = Functions.array_safe_erase(t.upgraded_pieces, self)
 	
 func generate_legal_moves(moves):
 	var legal_moves = []
@@ -271,9 +271,6 @@ func generate_legal_moves(moves):
 	
 	
 	return legal_moves
-
-func add_en_passants():
-	pass
 
 func add_castles(enemy_team): # super messy lol
 	var castles = []

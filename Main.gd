@@ -35,7 +35,7 @@ var game_turns = 0
 func _ready():
 	generate_board()
 	create_teams()
-#	parse_fen_string("4k3/r7/8/8/8/8/8/R3K2R w KQkq - 0 1")
+#	parse_fen_string("4k3/Pr5R/1R/8/8/8/8/1K6 w KQkq - 0 1")
 	parse_fen_string("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
 	
 func _process(_delta):
@@ -231,7 +231,7 @@ func update_session_info(move : Move): # yikes. getting a bit messy
 	
 	if move.taken_piece != null:
 		if move.taken_piece.upgraded:
-			move.taken_piece.get_team().upgraded_pieces.erase(move.taken_piece)
+			move.taken_piece.get_team().upgraded_pieces = Functions.array_safe_erase(move.taken_piece.get_team().upgraded_pieces, move.taken_piece)
 			
 	# check! checking
 #	print("Moved team: " + str(moved_team.team_index))
