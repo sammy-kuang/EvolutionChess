@@ -57,7 +57,7 @@ func search_for_path_block(input_array, pierce_amount : int = 0):
 				break
 			else:
 				ret_data.append(Move.new(self.tile, t, self, piece))
-				if pierce_amount <= 0:
+				if pierce_amount <= 0 or (piece.piece_type == 1 and piece.upgraded):
 					break
 				else:
 					pierce_amount -= 1
@@ -182,24 +182,9 @@ func generate_possible_moves(): # this is gonna be messy...
 				elif !t.has_piece():
 					generation.append(Move.new(tile, t, self, null))
 		
-	# upgraded queen limitations !
-	var st = tile.get_surrounding_tiles()
-	
-	for t in st:
-		if t.has_enemy_piece(team_index):
-			if t.piece.piece_type == 4 and t.piece.upgraded: # surroundings has an upgraded queen, can't move!
-				generation.clear()
-				
-	# upgraded rook limitations
-	for m in generation:
-		if piece_type == 1 and upgraded:
-			if m.taken_piece != null:
-				generation = Functions.array_safe_erase(generation, m)
-		
-		if m.taken_piece != null:
-			if m.taken_piece.piece_type == 1 and m.taken_piece.upgraded:
-				generation = Functions.array_safe_erase(generation, m)
-	
+	# implement limitations
+	generation = erase_limitations_from_generation(generation)
+
 	return generation
 	
 func generate_upgraded_moves():
@@ -242,8 +227,33 @@ func generate_upgraded_moves():
 				var move = Move.new(tile, p.tile, self, p, true)
 				generation.append(move)
 
+	generation = erase_limitations_from_generation(generation)
+
 	return generation
+
+func erase_limitations_from_generation(generation):
+	# upgraded queen limitations !
+	var st = tile.get_surrounding_tiles()
 	
+	for t in st:
+		if t.has_enemy_piece(team_index):
+			if t.piece.piece_type == 4 and t.piece.upgraded: # surroundings has an upgraded queen, can't move!
+				generation.clear()
+
+	# upgraded rook limitations
+	for m in generation:
+		if piece_type == 1 and upgraded:
+			if m.taken_piece != null:
+				generation = Functions.array_safe_erase(generation, m)
+		
+		if m.taken_piece != null:
+			if m.taken_piece.piece_type == 1 and m.taken_piece.upgraded:
+				generation = Functions.array_safe_erase(generation, m)
+
+
+
+	return generation
+
 func set_upgraded_state(state : bool):
 	upgraded = state
 	texture = default_texture if !state else upgraded_texture

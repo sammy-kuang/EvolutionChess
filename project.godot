@@ -84,6 +84,11 @@ window/size/height=1000
 window/stretch/mode="2d"
 window/stretch/aspect="keep"
 
+[global]
+
+total_alive_pieces=32
+total_alive_pieces.HTML5=16
+
 [input]
 
 click={
@@ -114,7 +119,10 @@ common/enable_pause_aware_picking=true
 [rendering]
 
 quality/driver/driver_name="GLES2"
+threads/thread_model=2
 vram_compression/import_etc=true
 vram_compression/import_etc2=false
 environment/default_clear_color=Color( 0.219608, 0.219608, 0.219608, 1 )
 environment/default_environment="res://default_env.tres"
+threads/thread_model.web=1
+threads/thread_model.HTML5=1

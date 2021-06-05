@@ -29,14 +29,18 @@ var current_turn = 0
 # game data
 var game_over : bool = false
 var game_turns = 0
+var calculate : Thread = null
 
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	generate_board()
 	create_teams()
-#	parse_fen_string("4k3/Pr5R/1R/8/8/8/8/1K6 w KQkq - 0 1")
+	# parse_fen_string("4k3/Pr6/1R6/1N6/8/8/8/4K2B w - - 0 1")
+	# parse_fen_string("4k3/Pr5R/1R/8/8/8/8/1K5B w KQkq - 0 1")
 	parse_fen_string("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+	
+	
 	
 func _process(_delta):
 	var mouse_pos_x = get_viewport().get_mouse_position().x
@@ -48,6 +52,9 @@ func _process(_delta):
 	
 		
 func _input(event):
+	if event.is_action_pressed("undo") and !Server.has_session:
+		get_tree().reload_current_scene()
+	
 	if game_over: # don't let anymore inputs on the game if the game has ended
 		return
 	
@@ -57,9 +64,10 @@ func _input(event):
 		var mouse_index : int = 0 if event.is_action_pressed("click") else 1
 		if mouse_tile != null:
 			mouse_tile.on_click(mouse_index)
-			
-	elif event.is_action_pressed("undo") and !Server.has_session:
-		get_tree().reload_current_scene()
+
+func _exit_tree():
+	if calculate != null:
+		calculate.wait_to_finish()
 			
 func pickup(piece : Piece, mouse_index : int = 0):
 	# getting
@@ -146,27 +154,6 @@ func switch_tile_pieces(a : Piece, b : Piece, tile_a, tile_b, is_simulation : bo
 	if !is_simulation:
 		a.position = tile_b.position
 		b.position = tile_a.position
-	
-func is_stalemate() -> bool:
-	var t = teams[0]
-	var o = teams[1]
-	
-	if !t.can_mate() and !o.can_mate():  # assume stalemate?
-		return true
-	
-	for team in teams:
-		if team.alive_pieces().size() <= 6:
-			var amount = 0
-			for piece in team.alive_pieces():
-				var m = piece.generate_possible_moves()
-				if piece.upgraded:
-					m.append_array(piece.generate_upgraded_moves())
-				var l = piece.generate_legal_moves(m).size()-1 # subtract one since we always technically put the piece back
-				amount += l
-			if amount == 0:
-				return true
-	
-	return false
 			
 
 func undo_move(move : Move, was_simulation : bool = false):
@@ -236,7 +223,6 @@ func update_session_info(move : Move): # yikes. getting a bit messy
 	# check! checking
 #	print("Moved team: " + str(moved_team.team_index))
 #	print("Unmoved team: " + str(moved_team.get_enemy_team().team_index))
-	print(sum_piece_position_indices())
 	
 	if moved_team.has_enemy_in_check():
 		print("we have the enemy in check!")
@@ -258,12 +244,13 @@ func update_session_info(move : Move): # yikes. getting a bit messy
 		for piece in t.upgraded_pieces:
 			if piece.deupgrade_on == game_turns:
 				set_piece_upgraded_state(pieces.find(piece), false, true)
-				
-	if(is_stalemate()):
-		Server.create_text_popup("Stalemate detected. owen plz screenshot!")
+	
+	if OS.get_name() != "HTML5":
+		calculate = Thread.new()
+		var _a = calculate.start(self, "game_over_check", "thread string")
+	else:
+		game_over_check()
 		
-	
-	
 func moved(move : Move):
 	var _move_piece = move.move_piece
 	
@@ -287,6 +274,32 @@ func moved(move : Move):
 		
 	update_session_info(move) # Update the times moved, the has moved, etc
 	
+
+func game_over_check(_thread_string="") -> String:
+	var w = teams[0]
+	var b = teams[1]
+
+	var whl = w.has_legal_moves()
+	var bhl = b.has_legal_moves()
+	
+	var reason = "None"
+
+	if !w.can_mate() and !b.can_mate():  # assume stalemate?
+		reason = "Stalemate! Draw."
+	
+	for team in teams:
+		var e_team : Team = team.get_enemy_team()
+		var hl = whl if team.team_index == 0 else bhl
+		if !hl:
+			if !e_team.has_enemy_in_check():
+				reason = "Stalemate! Draw."
+			else:
+				reason = "Checkmate! " + Team.index_to_team_name(e_team.team_index) + " has won!"
+	
+	if reason != "None":
+		set_game_over(true, reason)
+	
+	return reason
 
 func castle_check(move : Move):
 	var mp = move.move_piece
