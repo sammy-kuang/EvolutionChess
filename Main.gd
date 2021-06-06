@@ -249,7 +249,14 @@ func update_session_info(move : Move): # yikes. getting a bit messy
 		calculate = Thread.new()
 		var _a = calculate.start(self, "game_over_check", "thread string")
 	else:
-		game_over_check()
+		var timer : Timer = Timer.new()
+		timer.wait_time = 0.075
+		timer.autostart = false
+		timer.one_shot = true
+		timer.connect("timeout", self, "game_over_check")
+		add_child(timer)
+		timer.start()
+		
 		
 func moved(move : Move):
 	var _move_piece = move.move_piece
