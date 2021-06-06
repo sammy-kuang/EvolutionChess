@@ -3,4 +3,5 @@
 [ext_resource path="res://Instances/Piece.gd" type="Script" id=1]
 
 [node name="Piece" type="Sprite"]
+z_index = 2
 script = ExtResource( 1 )

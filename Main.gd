@@ -78,7 +78,7 @@ func pickup(piece : Piece, mouse_index : int = 0):
 	mouse_piece = piece
 	mouse_piece.possible_moves = mouse_piece.generate_legal_moves(m)
 	piece.cached_tile = piece.tile
-	piece.z_index = 1
+	piece.z_index += 1
 	# de-linking
 	piece.tile.piece = null
 	piece.tile = null
@@ -136,6 +136,7 @@ func move(move : Move, is_simulation : bool = false): # REDO THIS FUNCTION
 		
 		if !is_simulation:
 			mp.position = et.position
+			mp.z_index -= 1
 		
 		
 	last_move = move

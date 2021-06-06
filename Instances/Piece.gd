@@ -28,7 +28,6 @@ var upgraded_texture : Resource = null
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	main_ref = tile.main_ref
 	team_prefix = "white_" if team_index == 0 else "black_"
 	set_piece_type(piece_type)
 	initialize_unique_data()

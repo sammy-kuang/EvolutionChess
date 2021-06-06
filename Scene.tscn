@@ -1,8 +1,10 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://Main.tscn" type="PackedScene" id=1]
 [ext_resource path="res://Fonts/Ubuntu-B.ttf" type="DynamicFontData" id=2]
 [ext_resource path="res://Scene.gd" type="Script" id=3]
+[ext_resource path="res://Sprites/row.png" type="Texture" id=4]
+[ext_resource path="res://Sprites/column.png" type="Texture" id=5]
 
 [sub_resource type="DynamicFont" id=1]
 size = 22
@@ -19,13 +21,15 @@ rotating = true
 current = true
 
 [node name="Main" parent="." instance=ExtResource( 1 )]
+white_color = Color( 0.643137, 0.482353, 0.254902, 1 )
+black_color = Color( 0.341176, 0.184314, 0.00392157, 1 )
 highlight_color = Color( 0.52549, 0.764706, 0.156863, 1 )
 
 [node name="Black Time" type="LineEdit" parent="."]
 margin_left = 655.0
-margin_top = -73.0
+margin_top = -68.0
 margin_right = 799.0
-margin_bottom = -26.0
+margin_bottom = -21.0
 rect_pivot_offset = Vector2( 72, 23 )
 custom_fonts/font = SubResource( 1 )
 text = "10:00"
@@ -37,9 +41,9 @@ __meta__ = {
 
 [node name="White Time" type="LineEdit" parent="."]
 margin_left = 655.0
-margin_top = 823.0
+margin_top = 831.0
 margin_right = 799.0
-margin_bottom = 870.0
+margin_bottom = 878.0
 rect_pivot_offset = Vector2( 72, 23 )
 theme = SubResource( 2 )
 custom_fonts/font = SubResource( 1 )
@@ -49,3 +53,11 @@ editable = false
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="row" type="Sprite" parent="."]
+position = Vector2( 400, 790 )
+texture = ExtResource( 4 )
+
+[node name="column" type="Sprite" parent="."]
+position = Vector2( 14.5, 400 )
+texture = ExtResource( 5 )

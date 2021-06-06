@@ -6,6 +6,8 @@ onready var main = get_node("Main")
 
 onready var white_label : LineEdit = get_node("White Time")
 onready var black_label : LineEdit = get_node("Black Time")
+onready var row : Sprite = get_node("row")
+onready var column : Sprite = get_node("column")
 
 var black_time = 600
 var white_time = 600
@@ -15,6 +17,7 @@ var started = false
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	flip()
 	pass
 
 func _process(delta):
@@ -53,4 +56,12 @@ func seconds_to_time(secs):
 func flip():
 	black_label.set_rotation(PI)
 	white_label.set_rotation(PI)
+	row.flip_h = true
+	row.flip_v = true
+	row.texture = load("res://Sprites/row_black.png")
+	column.flip_h = true
+	column.flip_v = true
+	column.position = Vector2(800-14.5, 400)
+	column.texture = load("res://Sprites/column_black.png")
+	row.position.y = 10
 	main.flip_board()

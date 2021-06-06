@@ -70,7 +70,7 @@ _global_script_class_icons={
 
 config/name="EvolutionChess"
 config/description="An innovative variant of chess involving a random upgrade system, brand new piece movements and abilities, and a dynamic game flow."
-run/main_scene="res://Scene.tscn"
+run/main_scene="res://MainMenu.tscn"
 config/icon="res://Sprites/black_knight_upgraded.png"
 
 [autoload]
