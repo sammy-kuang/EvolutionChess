@@ -21,8 +21,6 @@ onready var code_enter : LineEdit = get_tree().get_root().get_node("MainMenu/Cod
 onready var close_session_button : TextureButton = get_tree().get_root().get_node("MainMenu/Host/CloseSession")
 var text_popup_prefab = preload("res://Instances/TextPopup.tscn")
 
-var VERSION_CODE = "JABNEFYHHDWA"
-
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	connect_to_server()
@@ -129,6 +127,16 @@ func create_text_popup(text):
 	
 remote func receive_server_popup(text):
 	create_text_popup(text)
+	
+func play_sound(audio_stream : AudioStream):
+	if OS.get_name() == "HTML5":
+		return
+		
+	var audio_player = AudioStreamPlayer.new()
+	audio_player.connect("finished", audio_player, "queue_free")
+	audio_player.stream = audio_stream
+	add_child(audio_player)
+	audio_player.play()
 	
 func _input(event):
 	if event.is_action_pressed("close"):

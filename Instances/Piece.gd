@@ -94,9 +94,7 @@ func get_possible_move(end_tile):
 		if move.end_tile == end_tile:
 			return move
 
-func generate_possible_moves(): # this is gonna be messy...
-	possible_moves.clear()
-	
+func generate_possible_moves(): # this is gonna be messy...	
 	var generation = []
 	match piece_type:
 		0: # pawn ( i should probably try cleaning up this code ) 
@@ -170,9 +168,10 @@ func generate_possible_moves(): # this is gonna be messy...
 				var st = tile.get_surrounding_tiles()
 				for t in st:
 					if t.has_enemy_piece(team_index):
-						for m in generation:
-							if m.end_tile == t:
-								generation.erase(m)
+						if t.piece.piece_type != 5:
+							for m in generation:
+								if m.end_tile == t:
+									generation.erase(m)
 		5: # king
 			var s = tile.get_surrounding_tiles()
 			for t in s:
@@ -234,10 +233,11 @@ func erase_limitations_from_generation(generation):
 	# upgraded queen limitations !
 	var st = tile.get_surrounding_tiles()
 	
-	for t in st:
-		if t.has_enemy_piece(team_index):
-			if t.piece.piece_type == 4 and t.piece.upgraded: # surroundings has an upgraded queen, can't move!
-				generation.clear()
+	if piece_type != 5:
+		for t in st:
+			if t.has_enemy_piece(team_index):
+				if t.piece.piece_type == 4 and t.piece.upgraded: # surroundings has an upgraded queen, can't move!
+					generation.clear()
 
 	# upgraded rook limitations
 	for m in generation:

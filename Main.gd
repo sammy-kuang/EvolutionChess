@@ -31,14 +31,18 @@ var game_over : bool = false
 var game_turns = 0
 var calculate : Thread = null
 
+# audio misc
+var move_clip : AudioStream = load("res://Audio/move.wav")
+
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	generate_board()
 	create_teams()
-	# parse_fen_string("4k3/Pr6/1R6/1N6/8/8/8/4K2B w - - 0 1")
-	# parse_fen_string("4k3/Pr5R/1R/8/8/8/8/1K5B w KQkq - 0 1")
+#	parse_fen_string("4k3/Pr6/1R6/1N6/8/8/8/4K2B w - - 0 1")
+#	parse_fen_string("4k3/Pr5R/1R/8/8/8/3p3/1K5B w KQkq - 0 1")
 	parse_fen_string("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+#	set_piece_upgraded_state(27, true)
 	
 	
 	
@@ -57,6 +61,11 @@ func _input(event):
 	
 	if game_over: # don't let anymore inputs on the game if the game has ended
 		return
+	
+	if event.is_action_pressed("upgrade") and !Server.has_session:
+		if mouse_tile != null:
+			if mouse_tile.has_piece():
+				set_piece_upgraded_state(pieces.find(mouse_tile.piece), true)
 	
 	var mouse_event : bool = event.is_action_pressed("click") or event.is_action_pressed("right_click")
 	
@@ -77,6 +86,7 @@ func pickup(piece : Piece, mouse_index : int = 0):
 	# setting
 	mouse_piece = piece
 	mouse_piece.possible_moves = mouse_piece.generate_legal_moves(m)
+	
 	piece.cached_tile = piece.tile
 	piece.z_index += 1
 	# de-linking
@@ -214,23 +224,22 @@ func update_session_info(move : Move): # yikes. getting a bit messy
 	move.move_piece.has_moved = true
 	current_turn = 1 if current_turn == 0 else 0
 	
-#	print("called update session info. total turns: " + str(game_turns) + ", current turn: " + str(current_turn))
-#	print(moved_team.team_index)
+	if move.move_piece.piece_type == 0:
+		var target_y = 7 if moved_team.team_index == 0 else 0
+		if move.end_tile.tile_pos.y == target_y:
+			move.move_piece.set_piece_type(4)
+	
 	
 	if move.taken_piece != null:
 		if move.taken_piece.upgraded:
 			move.taken_piece.get_team().upgraded_pieces = Functions.array_safe_erase(move.taken_piece.get_team().upgraded_pieces, move.taken_piece)
-			
-	# check! checking
-#	print("Moved team: " + str(moved_team.team_index))
-#	print("Unmoved team: " + str(moved_team.get_enemy_team().team_index))
 	
 	if moved_team.has_enemy_in_check():
 		print("we have the enemy in check!")
 		teams[current_turn].get_king().tile.set_highlight(true, check_color)
 	else:
-		teams[0].get_king().tile.set_highlight(false)
-		teams[1].get_king().tile.set_highlight(false)
+		for tile in tiles:
+			tile.set_highlight(false)
 		
 	if Server.has_session and Server.enemy_id != -1 and Server.team_index == 0: # need an opponent, host has timer dominance
 		Server.upload_updated_timer()
@@ -258,6 +267,7 @@ func update_session_info(move : Move): # yikes. getting a bit messy
 		add_child(timer)
 		timer.start()
 		
+	Server.play_sound(move_clip)
 		
 func moved(move : Move):
 	var _move_piece = move.move_piece
@@ -290,10 +300,15 @@ func game_over_check(_thread_string="") -> String:
 	var whl = w.has_legal_moves()
 	var bhl = b.has_legal_moves()
 	
+	var cur_team : Team = teams[current_turn]
+	
 	var reason = "None"
 
 	if !w.can_mate() and !b.can_mate():  # assume stalemate?
 		reason = "Stalemate! Draw."
+	
+	if !whl or !bhl:
+		reason = "Game over! One team cannot move!"
 	
 	for team in teams:
 		var e_team : Team = team.get_enemy_team()
@@ -303,6 +318,9 @@ func game_over_check(_thread_string="") -> String:
 				reason = "Stalemate! Draw."
 			else:
 				reason = "Checkmate! " + Team.index_to_team_name(e_team.team_index) + " has won!"
+	
+	if cur_team.has_enemy_in_check():
+		reason = "Game over! " + Team.index_to_team_name(current_turn) + " is able to take the other king!"
 	
 	if reason != "None":
 		set_game_over(true, reason)

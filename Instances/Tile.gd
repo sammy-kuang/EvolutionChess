@@ -214,7 +214,7 @@ func set_highlight(value : bool, color : Color = main_ref.highlight_color):
 	is_highlighted = value
 	
 func has_piece():
-	return (piece != null)
+	return (piece != null and piece.visible)
 
 func has_piece_type(piece_type : int):
 	if has_piece():

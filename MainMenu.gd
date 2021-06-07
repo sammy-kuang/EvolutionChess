@@ -1,6 +1,6 @@
 extends Node2D
 
-onready var join_button : Button = get_node("Join")
+onready var join_button : TextureButton = get_node("Join")
 onready var cooldown_timer : Timer = get_node("Join/Cooldown")
 var code_edit : LineEdit = null
 
