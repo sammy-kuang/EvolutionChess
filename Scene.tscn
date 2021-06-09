@@ -21,8 +21,6 @@ rotating = true
 current = true
 
 [node name="Main" parent="." instance=ExtResource( 1 )]
-white_color = Color( 0.643137, 0.482353, 0.254902, 1 )
-black_color = Color( 0.341176, 0.184314, 0.00392157, 1 )
 highlight_color = Color( 0.52549, 0.764706, 0.156863, 1 )
 
 [node name="Black Time" type="LineEdit" parent="."]

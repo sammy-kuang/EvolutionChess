@@ -21,8 +21,14 @@ onready var code_enter : LineEdit = get_tree().get_root().get_node("MainMenu/Cod
 onready var close_session_button : TextureButton = get_tree().get_root().get_node("MainMenu/Host/CloseSession")
 var text_popup_prefab = preload("res://Instances/TextPopup.tscn")
 
+var VERSION_CODE = "anVuZTgyMDIw"
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	# we don't want to connect if its single player
+	if get_node("/root/").has_node("Scene"):
+		print("Single player detected")
+		return
 	connect_to_server()
 
 # -- GLOBAL SERVER RELATED START -- 
@@ -40,8 +46,15 @@ func on_connection_failed():
 	create_text_popup("Can't seem to connect to the global server. Are you offline?")
 
 func on_connection_succeeded():
+	print("Established link to global server!")
+	verify_connection_version()
+	
+func verify_connection_version():
+	rpc_id(1, "request_verify", VERSION_CODE)
+	
+remote func on_verification_success():
 	connected_global = true
-	print("Connection successful to global server!")
+	print("Connection verified with global server!")
 	
 func on_connection_disconnected():
 	connected_global = false
