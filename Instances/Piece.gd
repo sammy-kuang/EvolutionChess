@@ -123,21 +123,10 @@ func generate_possible_moves(): # this is gonna be messy...
 					generation.append(Move.new(tile, right, self, right.piece))
 					
 			# en passant
-			var fifth_rank = start_y+(y*3) # get the current team's fifth rank
+			var en_passant = can_en_passant()
 			
-			if tile.tile_pos.y == fifth_rank: # capturing pawn must be on its fifth rank
-				var adjacents = []
-				adjacents.append(main_ref.position_to_tile(Vector2(tile.tile_pos.x-1, tile.tile_pos.y))) # left
-				adjacents.append(main_ref.position_to_tile(Vector2(tile.tile_pos.x+1, tile.tile_pos.y))) # right
-				for adjacent in adjacents: # typeof tile
-					if adjacent == null:
-						continue
-						
-					if adjacent.has_enemy_piece(team_index) and adjacent.has_piece_type(0): # 0 for pawn
-						if adjacent.piece.times_moved == 1: # the captured pawn must have only moved in a double step
-							if main_ref.last_move.move_piece == adjacent.piece: # the capture can only be made on the move immediately after the enemy pawn makes the double-step move; otherwise, the right to capture it en passant is lost.
-								generation.append(Move.new(tile, main_ref.position_to_tile(Vector2(adjacent.tile_pos.x, adjacent.tile_pos.y+y)), self, adjacent.piece))
-				pass
+			if en_passant != null:
+				generation.append(en_passant)
 			
 		1: # rook
 			generation.append_array(generate_vertical_moves())
@@ -278,7 +267,6 @@ func generate_legal_moves(moves):
 			
 	legal_moves.append(Move.new(tile, tile, self, null)) # always allow the user to put the piece back	
 	
-	
 	return legal_moves
 
 func add_castles(enemy_team): # super messy lol
@@ -339,6 +327,33 @@ func add_castles(enemy_team): # super messy lol
 			cant_castle_side(1)
 
 	return castles
+
+func can_en_passant():
+	if piece_type != 0:
+#		print("not pawn?")
+		return null
+	
+	var y = 1 if team_index == 0 else -1
+	var start_y = 1 if team_index == 0 else 6 # where does the team's pawns start?
+	var fifth_rank = start_y+(y*3) # get the current team's fifth rank
+	if tile.tile_pos.y == fifth_rank: # capturing pawn must be on its fifth rank
+#		print("fifth rank check passed")
+		var adjacents = []
+		adjacents.append(main_ref.position_to_tile(Vector2(tile.tile_pos.x-1, tile.tile_pos.y))) # left
+		adjacents.append(main_ref.position_to_tile(Vector2(tile.tile_pos.x+1, tile.tile_pos.y))) # right
+		for adjacent in adjacents: # typeof tile
+			if adjacent == null:
+				continue
+				
+			if adjacent.has_enemy_piece(team_index) and adjacent.has_piece_type(0): # 0 for pawn
+#				print("adjacent piece and pawn passed ")
+				if adjacent.piece.times_moved == 1: # the captured pawn must have only moved in a double step
+#					print("adjacent double step passed")
+					if main_ref.last_move.move_piece == adjacent.piece: # the capture can only be made on the move immediately after the enemy pawn makes the double-step move; otherwise, the right to capture it en passant is lost.
+#						print("last move check passed")
+						var move_tile = main_ref.position_to_tile(Vector2(adjacent.tile_pos.x, adjacent.tile_pos.y+y))
+						return Move.new(tile, move_tile, self, adjacent.piece)
+		
 
 func cant_castle_side(index : int):
 	unique_data[index] = null

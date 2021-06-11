@@ -84,6 +84,10 @@ remote func on_session_connection():
 	team_index = 1 # we must be black team, as we joined the game
 
 func request_new_session():
+#	if !Server.connected_global:
+#		print("Not validated/linked with global server")
+#		return
+	
 	if !has_session: # Don't let the player create another session when they already have one
 		rpc_id(1, "create_session")
 	else:

@@ -19,6 +19,7 @@ script = ExtResource( 3 )
 offset = Vector2( 400, 400 )
 rotating = true
 current = true
+smoothing_enabled = true
 
 [node name="Main" parent="." instance=ExtResource( 1 )]
 highlight_color = Color( 0.52549, 0.764706, 0.156863, 1 )

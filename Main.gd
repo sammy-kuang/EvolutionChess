@@ -66,6 +66,13 @@ func _input(event):
 		if mouse_tile != null:
 			if mouse_tile.has_piece():
 				set_piece_upgraded_state(pieces.find(mouse_tile.piece), true)
+				
+	if event.is_action_pressed("debug") and mouse_tile != null:
+		print("debug and mouse tile")
+		if mouse_tile.has_piece():
+			print("has piece")
+			mouse_tile.piece.can_en_passant()
+		
 	
 	var mouse_event : bool = event.is_action_pressed("click") or event.is_action_pressed("right_click")
 	
@@ -128,8 +135,11 @@ func move(move : Move, is_simulation : bool = false): # REDO THIS FUNCTION
 	var st  = move.start_tile
 	var et  = move.end_tile
 	
+#	if !is_simulation:
+#		print("not a simulation, altering positions")
+	
 	if move.swap:
-		switch_tile_pieces(mp, tp, st, et, is_simulation)	
+		switch_tile_pieces(mp, tp, st, et, is_simulation)
 	else:
 		# taken
 		if tp != null:
@@ -149,7 +159,6 @@ func move(move : Move, is_simulation : bool = false): # REDO THIS FUNCTION
 			mp.z_index -= 1
 		
 		
-	last_move = move
 	
 func set_game_over(state, reason=""):
 	game_over = state
@@ -163,9 +172,9 @@ func switch_tile_pieces(a : Piece, b : Piece, tile_a, tile_b, is_simulation : bo
 	tile_a.piece = b
 	
 	if !is_simulation:
+#		print("switch tile pieces positional change")
 		a.position = tile_b.position
 		b.position = tile_a.position
-			
 
 func undo_move(move : Move, was_simulation : bool = false):
 	if move.swap:
@@ -217,6 +226,8 @@ func decipher_move_indexes(m, t, s, e, swap):
 
 
 func update_session_info(move : Move): # yikes. getting a bit messy
+	last_move = move # update the last move
+	
 	var moved_team : Team = teams[current_turn]
 	game_turns += 1
 	
@@ -299,6 +310,8 @@ func game_over_check(_thread_string="") -> String:
 
 	var whl = w.has_legal_moves()
 	var bhl = b.has_legal_moves()
+	
+	return "None"
 	
 	var cur_team : Team = teams[current_turn]
 	
