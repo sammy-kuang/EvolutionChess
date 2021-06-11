@@ -114,6 +114,11 @@ func generate_moves():
 		return moves
 
 func has_legal_moves() -> bool:
+	var e_team : Team = get_enemy_team()
+	
+	if !e_team.has_enemy_in_check():
+		return true
+	
 	var amount = 0
 	for piece in alive_pieces():
 		var m = piece.generate_possible_moves()

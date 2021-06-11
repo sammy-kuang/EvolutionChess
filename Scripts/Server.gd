@@ -47,13 +47,13 @@ func on_connection_failed():
 
 func on_connection_succeeded():
 	print("Established link to global server!")
+	connected_global = true
 	verify_connection_version()
 	
 func verify_connection_version():
 	rpc_id(1, "request_verify", VERSION_CODE)
 	
 remote func on_verification_success():
-	connected_global = true
 	print("Connection verified with global server!")
 	
 func on_connection_disconnected():
@@ -84,10 +84,6 @@ remote func on_session_connection():
 	team_index = 1 # we must be black team, as we joined the game
 
 func request_new_session():
-#	if !Server.connected_global:
-#		print("Not validated/linked with global server")
-#		return
-	
 	if !has_session: # Don't let the player create another session when they already have one
 		rpc_id(1, "create_session")
 	else:

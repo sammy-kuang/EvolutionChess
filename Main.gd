@@ -311,8 +311,6 @@ func game_over_check(_thread_string="") -> String:
 	var whl = w.has_legal_moves()
 	var bhl = b.has_legal_moves()
 	
-	return "None"
-	
 	var cur_team : Team = teams[current_turn]
 	
 	var reason = "None"

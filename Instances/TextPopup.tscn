@@ -5,6 +5,9 @@
 [node name="TextPopup" type="CenterContainer"]
 anchor_right = 1.0
 anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+use_top_left = true
 script = ExtResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false
@@ -24,9 +27,11 @@ margin_top = -29.0
 margin_right = 179.0
 margin_bottom = 29.0
 window_title = "Evolution Chess: Notification"
+resizable = true
 dialog_text = "Placeholder Text! If you see this, please let me know!"
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [connection signal="confirmed" from="CanvasLayer/AcceptDialog" to="." method="_on_AcceptDialog_confirmed"]
+[connection signal="resized" from="CanvasLayer/AcceptDialog" to="." method="on_resized"]

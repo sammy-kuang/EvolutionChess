@@ -211,8 +211,9 @@ func generate_upgraded_moves():
 			pass
 		5: # king
 			for p in get_team().alive_pieces():
-				var move = Move.new(tile, p.tile, self, p, true)
-				generation.append(move)
+				if p != self:
+					var move = Move.new(tile, p.tile, self, p, true)
+					generation.append(move)
 
 	generation = erase_limitations_from_generation(generation)
 
