@@ -41,6 +41,7 @@ func _ready():
 	create_teams()
 #	parse_fen_string("4k3/Pr6/1R6/1N6/8/8/8/4K2B w - - 0 1")
 #	parse_fen_string("4k3/Pr5R/1R/8/8/8/3p3/1K5B w KQkq - 0 1")
+#	parse_fen_string("5Q2/7k/4R3/6B1/8/8/8/3K4 w - - 0 1")
 	parse_fen_string("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
 #	set_piece_upgraded_state(27, true)
 	
@@ -277,7 +278,7 @@ func update_session_info(move : Move): # yikes. getting a bit messy
 		timer.connect("timeout", self, "game_over_check")
 		add_child(timer)
 		timer.start()
-		
+	
 	Server.play_sound(move_clip)
 		
 func moved(move : Move):

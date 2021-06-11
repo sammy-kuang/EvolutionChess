@@ -21,7 +21,7 @@ onready var code_enter : LineEdit = get_tree().get_root().get_node("MainMenu/Cod
 onready var close_session_button : TextureButton = get_tree().get_root().get_node("MainMenu/Host/CloseSession")
 var text_popup_prefab = preload("res://Instances/TextPopup.tscn")
 
-var VERSION_CODE = "anVuZTgyMDIw"
+var VERSION_CODE = "ZW5wYXNzYW50Zml4"
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
