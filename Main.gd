@@ -249,6 +249,7 @@ func update_session_info(move : Move): # yikes. getting a bit messy
 	if moved_team.has_enemy_in_check():
 		print("we have the enemy in check!")
 		teams[current_turn].get_king().tile.set_highlight(true, check_color)
+#		Server.play_sound(load("res://Audio/check.wav"))
 	else:
 		for tile in tiles:
 			tile.set_highlight(false)
@@ -336,6 +337,7 @@ func game_over_check(_thread_string="") -> String:
 	
 	if reason != "None":
 		set_game_over(true, reason)
+
 	
 	return reason
 

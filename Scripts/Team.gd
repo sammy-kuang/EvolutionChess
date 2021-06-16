@@ -122,6 +122,9 @@ func has_legal_moves() -> bool:
 		if piece.upgraded:
 			m.append_array(piece.generate_upgraded_moves())
 		var l = piece.generate_legal_moves(m).size()-1 # subtract one since we always technically put the piece back
+		if l > 0:
+			return true
+		
 		amount += l
 	
-	return amount != 0
+	return false
